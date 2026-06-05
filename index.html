@@ -1174,5 +1174,12 @@ buildEmojiGrid('reg-emoji-grid','reg-emoji','⚽',null);
   if(s){try{const{uid}=JSON.parse(s);const snap=await getDoc(doc(db,'users',uid));if(snap.exists()){await loginUser(snap.data());return;}}catch(e){}}
 })();
 </script>
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js");
+  });
+}
+</script>
 </body>
 </html>
