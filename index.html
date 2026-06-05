@@ -7,7 +7,7 @@
 <style>
   :root{--bg:#0a0e27;--bg2:#0f1535;--card:rgba(255,255,255,0.05);--cb:rgba(255,255,255,0.1);--gold:#f5a623;--green:#27ae60;--text:#fff;--text2:#a0aec0;--danger:#e53e3e;--r:12px;}
   *{box-sizing:border-box;margin:0;padding:0;}
-  html,body{height:100%;font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;}
+  html,body{height:100%;font-family:'Segoe UI','Segoe UI Emoji','Apple Color Emoji','Noto Color Emoji',system-ui,sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;}
   #app-header{position:fixed;top:0;left:0;right:0;z-index:100;height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;background:linear-gradient(135deg,#1a1f4e,#0a0e27);border-bottom:1px solid var(--cb);backdrop-filter:blur(10px);transition:background 0.3s,color 0.3s;}
   #app-header .logo{font-size:1.1rem;font-weight:800;letter-spacing:1px;}
   #app-header .logo span{color:var(--gold);}
@@ -405,7 +405,19 @@ const ROUNDS=["Test-Spieltag","Gruppenphase","Sechzehntelfinal","Achtelfinal","V
 const STAGE_MAP={"TEST":"Test-Spieltag","GROUP_STAGE":"Gruppenphase","LAST_32":"Sechzehntelfinal","LAST_16":"Achtelfinal","QUARTER_FINALS":"Viertelfinal","SEMI_FINALS":"Halbfinal","THIRD_PLACE":"Spiel um 3. Platz","FINAL":"Final"};
 const WM_TEAMS=Object.keys(FLAG_CODES).sort();
 const ABSCHNEIDEN=["Gruppenphase","Sechzehntelfinal","Achtelfinal","Viertelfinal","Halbfinal","Spiel um 3. Platz","Final","Weltmeister"];
-const EMOJIS=['⚽','🏆','🦁','🦅','🐯','🌟','🔥','⚡','🎯','🛡️','🎪','🌊','🏅','🎭','🦊','🐉','🦋','🦄','🐻','🦁','🐺','🦈','🦂','🦉','🦚','🦜','🦩','🐬','🐋','🦏','🏇','🤺','🥊','🏋️','🎳','🎲','🧩','🌍','🌎','🌏','🗺️','🏔️','🌋','🏟️','🎆','🎇','✨','💫','🌠','🎖️','🎗️','👑','💎','🔑','⚜️','🧲','🎻','🎺','🥁','🎸'];
+
+
+const EMOJIS = [
+  '⚽','🏆','🏒','🥅', 
+  '🦁','🦅','🐯','🐻','🐺','🦊','🐉','🦋','🦜',
+  '🌟','🔥','⚡','🎯','🌊',
+  '🏅','🎭','🎖️','👑','💎',
+  '🎳','🎲','🧩','💲','🎵',
+  '🌍','🌎','🌏','🗺️','🏟️',
+  '🎆','🎇','✨','💫','🌠','🎗️',
+  '😎','👻','🍔','🍟','🍩'
+];
+
 const BANNER_LABELS=['Goldpokal','Stadion Nacht','USA Stars','Mexiko Azteken','Kanada Natur','Fussball Rasen','Feuerwerk','Miami Palmen','Adler Flug','Wüste Sunset','Northern Lights','Weltmeister'];
 const BANNER_SVGS=[
   `<svg viewBox="0 0 400 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="b0" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#0a0e27"/><stop offset="100%" style="stop-color:#1a1500"/></linearGradient></defs><rect width="400" height="100" fill="url(#b0)"/><circle cx="340" cy="50" r="60" fill="rgba(245,166,35,0.08)"/><circle cx="340" cy="50" r="35" fill="rgba(245,166,35,0.12)"/><path d="M180 75 L190 45 L175 45 L170 30 L210 30 L205 45 L190 45" fill="none" stroke="#f5a623" stroke-width="2"/><path d="M170 30 Q160 30 160 40 Q160 55 175 60 L190 75 L210 75 L225 60 Q240 55 240 40 Q240 30 230 30" fill="none" stroke="#f5a623" stroke-width="2"/><line x1="183" y1="75" x2="217" y2="75" stroke="#f5a623" stroke-width="3"/><text x="50" y="55" font-family="sans-serif" font-size="22" font-weight="900" fill="#f5a623" opacity="0.9">WM 2026</text><text x="50" y="75" font-family="sans-serif" font-size="11" fill="rgba(255,255,255,0.5)">Tippspiel</text></svg>`,
@@ -653,12 +665,27 @@ function buildMatchCard(m){
     ta=`<div style="text-align:center;color:var(--text2);font-size:0.83rem;padding:7px">${tip?`Mein Tipp: <strong>${tip.home}:${tip.away}</strong>`:'Kein Tipp abgegeben'}</div>`;
   }else{
     const h=tip?.home??'',a=tip?.away??'';
-    ta=`<div class="tip-row">
-      <input class="tip-inp" type="number" min="0" max="99" id="th-${m.id}" value="${h}" placeholder="0" onfocus="if(this.value==='')this.value='0'" oninput="if(this.value==='')this.value='0'">
-      <span class="tip-dash">:</span>
-      <input class="tip-inp" type="number" min="0" max="99" id="ta-${m.id}" value="${a}" placeholder="0" onfocus="if(this.value==='')this.value='0'" oninput="if(this.value==='')this.value='0'">
-      <button class="tip-btn" id="tb-${m.id}" onclick="saveTip('${m.id}')">${tip?'✓ Ändern':'Tippen'}</button>
-    </div>`;
+
+ta = `<div class="tip-row">
+  <input class="tip-inp" type="number" min="0" max="99"
+    id="th-${m.id}"
+    value="${h !== '' ? h : ''}"
+    placeholder="0"
+    onfocus="if(this.value=='0') this.value=''; this.select();">
+
+  <span class="tip-dash">:</span>
+
+  <input class="tip-inp" type="number" min="0" max="99"
+    id="ta-${m.id}"
+    value="${a !== '' ? a : ''}"
+    placeholder="0"
+    onfocus="if(this.value=='0') this.value=''; this.select();">
+
+  <button class="tip-btn" id="tb-${m.id}" onclick="saveTip('${m.id}')">
+    ${tip?'✓ Ändern':'Tippen'}
+  </button>
+</div>`;
+
   }
   return `<div class="match-card ${locked?'locked':''} ${finished?'finished':''} ${isTest?'test-match':''}" id="mc-${m.id}">
     <div class="mc-meta"><span class="mc-label">${m.group||m.round}</span>${testBadge}<span class="mc-time">${fmtMEZ(m.utcDate)} MEZ</span>${sb}</div>
@@ -674,8 +701,15 @@ function scheduleAutoLock(m){
 }
 window.saveTip=async mid=>{
   const uid=window.APP.user.uid;
-  const h=parseInt(document.getElementById('th-'+mid)?.value),a=parseInt(document.getElementById('ta-'+mid)?.value);
-  if(isNaN(h)||isNaN(a)||h<0||a<0)return alert('Bitte gültige Tore (0-99) eingeben.');
+let hRaw = document.getElementById('th-'+mid)?.value;
+let aRaw = document.getElementById('ta-'+mid)?.value;
+
+// 👉 DAS IST DER KEY: leer = 0
+let h = hRaw === '' ? 0 : parseInt(hRaw);
+let a = aRaw === '' ? 0 : parseInt(aRaw);
+
+if (isNaN(h) || isNaN(a) || h < 0 || a < 0)
+  return alert('Bitte gültige Tore (0-99) eingeben.');
   const m=window.APP.matchesCache.find(x=>x.id===mid);
   if(!m||isLocked(m.utcDate))return alert('Tipp ist gesperrt.');
   try{
