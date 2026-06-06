@@ -796,18 +796,44 @@ async function loadUebersicht(){
     const snap=await getDocs(query(collection(db,'matches'),orderBy('utcDate')));
     window.APP.matchesCache=[];snap.forEach(d=>window.APP.matchesCache.push(d.data()));
   }catch(e){}
-  const locked=window.APP.matchesCache.filter(m=>isLocked(m.utcDate));
-  if(!locked.length){
-    el.innerHTML='<div class="card" style="text-align:center;padding:24px"><div style="font-size:2rem">⏳</div><p class="text-muted mt-8">Noch keine Spiele gestartet.</p></div>';
-    document.getElementById('uebersicht-round-nav').innerHTML='';return;
+
+
+const allMatches = window.APP.matchesCache;
+
+if(!allMatches.length){  
+  el.innerHTML='<div class="card" style="text-align:center;padding:24px"><div style="font-size:2rem">⏳</div><p class="text-muted mt-8">Noch keine Spiele vorhanden.</p></div>';  
+  document.getElementById('uebersicht-round-nav').innerHTML='';
+  return;  
+}
+
+const grouped = {};
+allMatches.forEach(m => {
+  const r = m.round || '?';
+  if(!grouped[r]) grouped[r] = [];
+  grouped[r].push(m);
+});
+
+const avail = [
+  ...ROUNDS.filter(r => grouped[r]?.length > 0),
+  'Bonusfragen'
+];
+
+const active = avail[0];
+
+window._uebGrouped = grouped;
+
+const onSel = r => {
+  if(r === 'Bonusfragen') {
+    renderBonusUebersicht();
+  } else {
+    renderUebTable(window._uebGrouped[r] || []);
   }
-  const grouped={};locked.forEach(m=>{const r=m.round||'?';if(!grouped[r])grouped[r]=[];grouped[r].push(m);});
-  const avail=ROUNDS.filter(r=>grouped[r]?.length>0);
-  const active=avail[0];
-  window._uebGrouped=grouped;
-  const onSel=r=>renderUebTable(window._uebGrouped[r]||[]);
-  buildRoundNav('uebersicht-round-nav',avail,active,onSel);
-  renderUebTable(grouped[active]||[]);
+};
+
+buildRoundNav('uebersicht-round-nav', avail, active, onSel);
+onSel(active);
+
+
 }
 
 async function renderUebTable(matches){
@@ -828,7 +854,8 @@ async function renderUebTable(matches){
     <table style="width:100%;border-collapse:collapse;font-size:0.78rem;min-width:${120+matches.length*colW}px">
       <thead><tr style="background:rgba(255,255,255,0.07)">
         <th style="text-align:left;padding:8px 10px;position:sticky;left:0;background:#131830;z-index:2;min-width:110px;border-bottom:2px solid var(--cb);border-right:1px solid var(--cb)">Spieler</th>`;
-    matches.forEach(m=>{
+   
+ matches.forEach(m=>{
       const fin=m.status==='FINISHED'&&m.score?.fullTime;
       const score=fin?`<div style="color:var(--green);font-weight:900;font-size:0.85rem">${m.score.fullTime.home}:${m.score.fullTime.away}</div>`:`<div style="color:var(--text2);font-size:0.75rem">offen</div>`;
       html+=`<th style="text-align:center;padding:6px 4px;width:${colW}px;border-bottom:2px solid var(--cb);border-left:1px solid rgba(255,255,255,0.05)"><div style="font-size:0.68rem;line-height:1.4;color:var(--text)">${shortName(m)}</div>${score}</th>`;
@@ -837,27 +864,199 @@ async function renderUebTable(matches){
     users.forEach((u,ri)=>{
       const rowBg=ri%2===0?'transparent':'rgba(255,255,255,0.025)';
       html+=`<tr style="background:${rowBg}"><td style="padding:7px 10px;position:sticky;left:0;background:${ri%2===0?'#0e1330':'#111634'};z-index:1;border-bottom:1px solid rgba(255,255,255,0.05);border-right:1px solid var(--cb);white-space:nowrap;cursor:pointer;font-weight:600" onclick="openUserProfile('${u.uid}')">${u.emoji||'⚽'} ${u.username}</td>`;
-      matches.forEach(m=>{
-        const t=userTips[u.uid]?.[m.id];
-        const fin=m.status==='FINISHED'&&m.score?.fullTime;
-        let tipStr,ptsBit='';
-        if(t!==undefined){
-          tipStr=`<span style="font-weight:700">${t.home}:${t.away}</span>`;
-          if(fin){
-const pts = calcPts(t.home, t.away, m.score.fullTime.home, m.score.fullTime.away, m.stage);
+  
+
+    matches.forEach(m => {
+  const t = userTips[u.uid]?.[m.id];
+  const fin = m.status === 'FINISHED' && m.score?.fullTime;
+  const locked = isLocked(m.utcDate);
+
+  let tipStr = '';
+  let ptsBit = '';
+
+  if(t !== undefined) {
+    if(locked) {
+      // Tipp ist geschlossen: konkreten Tipp anzeigen
+      tipStr = `<span style="font-weight:700">${t.home}:${t.away}</span>`;
+
+      // Punkte nur anzeigen, wenn Spiel beendet ist
+      if(fin) {
+        const pts = calcPts(
+          t.home,
+          t.away,
+          m.score.fullTime.home,
+          m.score.fullTime.away,
+          m.stage
+        );
+
+        const col =
+          pts.total >= 5 ? '#f5a623' :
+          pts.total >= 3 ? '#90cdf4' :
+          pts.total >= 2 ? '#a0aec0' :
+          pts.total >= 1 ? '#76e4f7' :
+          '#fc8181';
+
+        ptsBit = `<div style="font-size:0.65rem;color:${col};font-weight:700;margin-top:1px">+${pts.total}</div>`;
+      }
+    } else {
+      // Tipp vorhanden, aber noch offen/veränderbar:
+      // nicht verraten, was getippt wurde
+      tipStr = `<span style="color:var(--text2);font-weight:700">-:-</span>`;
+    }
+  } else {
+    if(locked) {
+      // Kein Tipp und Tippfrist vorbei
+      tipStr = `<span style="color:var(--text2)">–:–</span>`;
+
+      if(fin) {
+        ptsBit = `<div style="font-size:0.65rem;color:var(--danger);margin-top:1px">–</div>`;
+      }
+    } else {
+      // Kein Tipp und Spiel noch offen:
+      // komplett leer lassen
+      tipStr = '';
+    }
+  }
+
+  html += `<td style="text-align:center;padding:5px 3px;border-bottom:1px solid rgba(255,255,255,0.05);border-left:1px solid rgba(255,255,255,0.05)">${tipStr}${ptsBit}</td>`;
+});
 
 
 
-const col=pts.total>=5?'#f5a623':pts.total>=3?'#90cdf4':pts.total>=2?'#a0aec0':pts.total>=1?'#76e4f7':'#fc8181';ptsBit=`<div style="font-size:0.65rem;color:${col};font-weight:700;margin-top:1px">+${pts.total}</div>`;}
-        }else{tipStr=`<span style="color:var(--text2)">–:–</span>`;if(fin)ptsBit=`<div style="font-size:0.65rem;color:var(--danger);margin-top:1px">–</div>`;}
-        html+=`<td style="text-align:center;padding:5px 3px;border-bottom:1px solid rgba(255,255,255,0.05);border-left:1px solid rgba(255,255,255,0.05)">${tipStr}${ptsBit}</td>`;
-      });
       html+=`</tr>`;
     });
     html+=`</tbody></table></div>`;
     el.innerHTML=html;
   }catch(e){el.innerHTML='<p class="text-muted">Fehler: '+e.message+'</p>';}
 }
+
+
+async function renderBonusUebersicht(){
+  const el = document.getElementById('uebersicht-content');
+  el.innerHTML = '<div class="loading-text">Lade Bonusfragen...</div>';
+
+  try {
+    const [uSnap, qSnap] = await Promise.all([
+      getDocs(query(collection(db,'users'), orderBy('points','desc'))),
+      getDocs(collection(db,'bonusQuestions'))
+    ]);
+
+    const users = [];
+    uSnap.forEach(d => users.push(d.data()));
+
+    const questions = [];
+    qSnap.forEach(d => questions.push({ id: d.id, ...d.data() }));
+
+    if(!questions.length){
+      el.innerHTML = '<p class="text-muted text-center" style="padding:24px">Keine Bonusfragen vorhanden.</p>';
+      return;
+    }
+
+    const userBonus = {};
+
+    for(const u of users){
+      userBonus[u.uid] = {};
+      const bs = await getDocs(collection(db,'bonusTips',u.uid,'answers'));
+      bs.forEach(d => {
+        userBonus[u.uid][d.id] = d.data();
+      });
+    }
+
+    const colW = Math.max(120, Math.floor(360 / Math.min(questions.length, 3)));
+
+    let html = `<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:var(--r);border:1px solid var(--cb)">
+      <table style="width:100%;border-collapse:collapse;font-size:0.78rem;min-width:${120 + questions.length * colW}px">
+        <thead>
+          <tr style="background:rgba(255,255,255,0.07)">
+            <th style="text-align:left;padding:8px 10px;position:sticky;left:0;background:#131830;z-index:2;min-width:110px;border-bottom:2px solid var(--cb);border-right:1px solid var(--cb)">Spieler</th>`;
+
+    questions.forEach(q => {
+      const locked = Date.now() >= new Date(q.deadline).getTime();
+      const status = q.correctAnswer
+        ? `<div style="color:var(--green);font-weight:900;font-size:0.75rem">✓ ${q.correctAnswer}</div>`
+        : locked
+          ? `<div style="color:var(--gold);font-size:0.75rem">gesperrt</div>`
+          : `<div style="color:var(--text2);font-size:0.75rem">offen</div>`;
+
+      html += `<th style="text-align:center;padding:6px 4px;width:${colW}px;border-bottom:2px solid var(--cb);border-left:1px solid rgba(255,255,255,0.05)">
+        <div style="font-size:0.68rem;line-height:1.4;color:var(--text)">${q.question}</div>
+        ${status}
+      </th>`;
+    });
+
+    html += `</tr></thead><tbody>`;
+
+    users.forEach((u,ri) => {
+      const rowBg = ri % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.025)';
+
+      html += `<tr style="background:${rowBg}">
+        <td style="padding:7px 10px;position:sticky;left:0;background:${ri%2===0?'#0e1330':'#111634'};z-index:1;border-bottom:1px solid rgba(255,255,255,0.05);border-right:1px solid var(--cb);white-space:nowrap;cursor:pointer;font-weight:600" onclick="openUserProfile('${u.uid}')">
+          ${u.emoji || '⚽'} ${u.username}
+        </td>`;
+
+
+
+questions.forEach(q => {
+  const t = userBonus[u.uid]?.[q.id];
+  const ans = t?.answer;
+  const locked = Date.now() >= new Date(q.deadline).getTime();
+
+  let cell = '';
+  let ptsBit = '';
+
+  if(ans) {
+    if(locked) {
+      // Bonusfrage ist geschlossen: Antwort anzeigen
+      cell = `<span style="font-weight:700">${ans}</span>`;
+
+      // Punkte nur anzeigen, wenn die Frage ausgewertet wurde
+      if(q.correctAnswer) {
+        const pts = ans === q.correctAnswer ? (q.points || 15) : 0;
+        const col = pts > 0 ? '#f5a623' : '#fc8181';
+
+        ptsBit = `<div style="font-size:0.65rem;color:${col};font-weight:700;margin-top:1px">${pts > 0 ? '+' + pts : '✗'}</div>`;
+      }
+    } else {
+      // Antwort vorhanden, aber Deadline noch offen:
+      // Antwort nicht verraten
+      cell = `<span style="color:var(--text2);font-weight:700">-</span>`;
+    }
+  } else {
+    if(locked) {
+      // Keine Antwort und Deadline vorbei
+      cell = `<span style="color:var(--text2)">–</span>`;
+
+      if(q.correctAnswer) {
+        ptsBit = `<div style="font-size:0.65rem;color:var(--danger);font-weight:700;margin-top:1px">✗</div>`;
+      }
+    } else {
+      // Keine Antwort und noch offen:
+      // komplett leer lassen
+      cell = '';
+    }
+  }
+
+  html += `<td style="text-align:center;padding:5px 3px;border-bottom:1px solid rgba(255,255,255,0.05);border-left:1px solid rgba(255,255,255,0.05)">
+    ${cell}
+    ${ptsBit}
+  </td>`;
+});
+
+
+
+
+      html += `</tr>`;
+    });
+
+    html += `</tbody></table></div>`;
+
+    el.innerHTML = html;
+
+  } catch(e) {
+    el.innerHTML = '<p class="text-muted">Fehler: ' + e.message + '</p>';
+  }
+}
+
 
 function calcPts(tipH,tipA,realH,realA,stage){
   const r = window.APP.scoringRules;
