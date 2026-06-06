@@ -271,6 +271,13 @@ const db = getFirestore(initializeApp({
 }));
 window.db=db;
 
+async function getServerTime() {
+  const ref = doc(db, 'meta', 'time');
+  await setDoc(ref, { t: serverTimestamp() }, { merge: true });
+  const snap = await getDoc(ref);
+  return snap.data().t.toMillis();
+}
+
 const FLAG_CODES={
   "Argentinien":"ar","Australien":"au","Ägypten":"eg","Algerien":"dz",
   "Belgien":"be","Bosnien-Herzegowina":"ba","Brasilien":"br","Curaçao":"cw",
@@ -459,7 +466,16 @@ const TEXT_COLORS=['#ffffff','#f5a623','#27ae60','#74c69d','#90cdf4','#fbd38d','
 async function hashPw(pw){const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(pw));return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');}
 function fmtMEZ(iso){return new Date(iso).toLocaleString('de-CH',{timeZone:'Europe/Zurich',weekday:'short',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});}
 function fmtDay(iso){return new Date(iso).toLocaleDateString('de-CH',{timeZone:'Europe/Zurich',weekday:'short',day:'2-digit',month:'2-digit'});}
-function isLocked(utcDate){return Date.now()>=new Date(utcDate).getTime()-60000;}
+
+function isLocked(utcDate){
+  return Date.now() >= new Date(utcDate).getTime() - 60000;
+}
+
+async function isLockedServer(utcDate){
+  const serverTime = await getServerTime();
+  return serverTime >= new Date(utcDate).getTime() - 60000;
+}
+
 function showAlert(id,msg,type='error'){const el=document.getElementById(id);if(!el)return;el.innerHTML=`<div class="alert alert-${type}">${msg}</div>`;setTimeout(()=>{if(el)el.innerHTML='';},5000);}
 
 function buildRoundNav(navId,rounds,active,onSelect){
@@ -731,8 +747,14 @@ let a = aRaw === '' ? 0 : parseInt(aRaw);
 
 if (isNaN(h) || isNaN(a) || h < 0 || a < 0)
   return alert('Bitte gültige Tore (0-99) eingeben.');
+
+
   const m=window.APP.matchesCache.find(x=>x.id===mid);
-  if(!m||isLocked(m.utcDate))return alert('Tipp ist gesperrt.');
+if(!m) return;
+
+const locked = await isLockedServer(m.utcDate);
+if(locked) return alert('Tipp ist gesperrt.');
+
   try{
     await setDoc(doc(db,'tips',uid,'matches',mid),{home:h,away:a,savedAt:new Date().toISOString()});
     window.APP.tipsCache[mid]={home:h,away:a};
@@ -777,6 +799,13 @@ window.saveBonusTip=async qid=>{
   const ans=document.getElementById('bs-'+qid)?.value;
   if(!ans)return alert('Bitte eine Antwort wählen.');
   const uid=window.APP.user.uid;
+
+const qSnap = await getDoc(doc(db,'bonusQuestions', qid));
+const q = qSnap.data();
+
+const locked = await isLockedServer(q.deadline);
+if (locked) return alert('Bonusfrage ist gesperrt.');
+
   try{
     await setDoc(doc(db,'bonusTips',uid,'answers',qid),{answer:ans,savedAt:new Date().toISOString()});
     window.APP.bonusTipsCache[qid]={answer:ans};
@@ -1110,7 +1139,9 @@ window.openUserProfile=async uid=>{
     const bqSnap=await getDocs(collection(db,'bonusQuestions'));
     let bonusHtml='';
     bqSnap.forEach(d=>{
-      const q=d.data();const locked=Date.now()>=new Date(q.deadline).getTime();if(!locked)return;
+      const q=d.data();
+
+const locked=Date.now()>=new Date(q.deadline).getTime();if(!locked)return;
       const ans=bSnap.docs.find(x=>x.id===d.id)?.data()?.answer;
       bonusHtml+=`<div class="th-row"><span class="th-match">${q.question}</span><span style="color:var(--gold);font-size:0.78rem">${ans||'Kein Tipp'}</span>${q.correctAnswer?`<span class="pts-badge ${ans===q.correctAnswer?'p5':'p0'}" style="font-size:0.68rem">${ans===q.correctAnswer?'+'+q.points:'✗'}</span>`:''}</div>`;
     });
