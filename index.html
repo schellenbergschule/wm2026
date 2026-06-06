@@ -391,6 +391,7 @@ const WM2026=[
   ["m206","2026-07-07T02:00:00Z","S.m111","S.m112","Achtelfinal","LAST_16"],
   ["m207","2026-07-07T18:00:00Z","S.m113","S.m114","Achtelfinal","LAST_16"],
   ["m208","2026-07-07T22:00:00Z","S.m115","S.m116","Achtelfinal","LAST_16"],
+  ["t004","2026-06-06T21:45:00Z","G","H","Achtelfinal","LAST_16"],
   ["m301","2026-07-09T22:00:00Z","S.m201","S.m202","Viertelfinal","QUARTER_FINALS"],
   ["m302","2026-07-10T21:00:00Z","S.m203","S.m204","Viertelfinal","QUARTER_FINALS"],
   ["m303","2026-07-11T23:00:00Z","S.m205","S.m206","Viertelfinal","QUARTER_FINALS"],
@@ -402,7 +403,20 @@ const WM2026=[
 ];
 
 const ROUNDS=["Test-Spieltag","Gruppenphase","Sechzehntelfinal","Achtelfinal","Viertelfinal","Halbfinal","Spiel um 3. Platz","Final"];
+
 const STAGE_MAP={"TEST":"Test-Spieltag","GROUP_STAGE":"Gruppenphase","LAST_32":"Sechzehntelfinal","LAST_16":"Achtelfinal","QUARTER_FINALS":"Viertelfinal","SEMI_FINALS":"Halbfinal","THIRD_PLACE":"Spiel um 3. Platz","FINAL":"Final"};
+
+
+const KO_STAGES = [
+  "LAST_32",
+  "LAST_16",
+  "QUARTER_FINALS",
+  "SEMI_FINALS",
+  "THIRD_PLACE",
+  "FINAL"
+];
+
+
 const WM_TEAMS=Object.keys(FLAG_CODES).sort();
 const ABSCHNEIDEN=["Gruppenphase","Sechzehntelfinal","Achtelfinal","Viertelfinal","Halbfinal","Spiel um 3. Platz","Final","Weltmeister"];
 
@@ -462,7 +476,7 @@ function buildRoundNav(navId,rounds,active,onSelect){
   sel.onchange=()=>{onSelect(sel.value);buildRoundNav(navId,rounds,sel.value,onSelect);};
 }
 
-window.APP={user:null,db,rankingUnsub:null,matchesCache:[],tipsCache:{},bonusTipsCache:{},scoringRules:{exact:5,diff:3,tend:2,bonus:1,bq:7},rankingCache:[]};
+window.APP={user:null,db,rankingUnsub:null,matchesCache:[],tipsCache:{},bonusTipsCache:{},scoringRules:{exact:5,diff:3,tend:2,bonus:1,bq:15},rankingCache:[]};
 
 window.switchAuthTab=t=>{
   document.querySelectorAll('.auth-tab').forEach((el,i)=>el.classList.toggle('active',(i===0&&t==='login')||(i===1&&t==='register')));
@@ -522,12 +536,12 @@ async function seedMatches(){
   await batch.commit();
   const bSnap=await getDocs(collection(db,'bonusQuestions'));
   if(bSnap.empty){
-    await setDoc(doc(db,'bonusQuestions','bq_wm'),{question:'Wer wird Weltmeister?',deadline:'2026-06-28T10:00:00Z',points:7,type:'team'});
-    await setDoc(doc(db,'bonusQuestions','bq_top'),{question:'Welches Land stellt den Torschützenkönig?',deadline:'2026-06-11T19:00:00Z',points:7,type:'team'});
-    await setDoc(doc(db,'bonusQuestions','bq_sui'),{question:'Wie weit kommt die Schweiz?',deadline:'2026-06-11T19:00:00Z',points:7,type:'round'});
+    await setDoc(doc(db,'bonusQuestions','bq_wm'),{question:'Wer wird Weltmeister?',deadline:'2026-06-28T10:00:00Z',points:15,type:'team'});
+    await setDoc(doc(db,'bonusQuestions','bq_top'),{question:'Welches Land stellt den Torschützenkönig?',deadline:'2026-06-11T19:00:00Z',points:15,type:'team'});
+    await setDoc(doc(db,'bonusQuestions','bq_sui'),{question:'Wie weit kommt die Schweiz?',deadline:'2026-06-11T19:00:00Z',points:15,type:'round'});
   }
   if(!(await getDoc(doc(db,'config','scoring'))).exists())
-    await setDoc(doc(db,'config','scoring'),{exact:5,diff:3,tend:2,bonus:1,bq:7});
+    await setDoc(doc(db,'config','scoring'),{exact:5,diff:3,tend:2,bonus:1,bq:15});
   const snap2=await getDocs(query(collection(db,'matches'),orderBy('utcDate')));
   window.APP.matchesCache=[];snap2.forEach(d=>window.APP.matchesCache.push(d.data()));
 }
@@ -669,7 +683,7 @@ function buildMatchCard(m){
   let ta='';
   if(finished&&m.score?.fullTime){
     const hg=m.score.fullTime.home??'?',ag=m.score.fullTime.away??'?';
-    const pts=tip?calcPts(tip.home,tip.away,hg,ag):null;
+const pts = tip ? calcPts(tip.home, tip.away, hg, ag, m.stage) : null;
     let pb='';if(pts!==null){const cl=ptsCls(pts.total);pb=`<span class="pts-badge ${cl}">+${pts.total} Pts${pts.reason?' · '+pts.reason:''}</span>`;}
     ta=`<div class="result-box"><span style="font-size:0.78rem;color:var(--text2)">Ergebnis:</span><span class="result-score">${hg}:${ag}</span>${pb}</div>${tip?`<div class="mytip">Mein Tipp: <span>${tip.home}:${tip.away}</span></div>`:'<div class="mytip" style="color:var(--danger)">Kein Tipp abgegeben</div>'}`;
   }else if(locked){
@@ -747,13 +761,13 @@ async function renderBonusTipps(){
       const correctAns=q.correctAnswer;
       let result='';
       if(correctAns){
-        if(myAns===correctAns)result=`<div class="alert alert-success" style="margin-top:8px">✓ Korrekt! +${q.points||7} Punkte</div>`;
+        if(myAns===correctAns)result=`<div class="alert alert-success" style="margin-top:8px">✓ Korrekt! +${q.points||15} Punkte</div>`;
         else if(myAns)result=`<div class="alert alert-error" style="margin-top:8px">✗ Falsch. Richtig: <strong>${correctAns}</strong></div>`;
         else result=`<div class="alert alert-error" style="margin-top:8px">Kein Tipp abgegeben. Richtig: <strong>${correctAns}</strong></div>`;
       }
       html+=`<div class="bonus-card">
         <h3>${q.question}</h3>
-        <div class="bonus-dl">Deadline: ${dl} MEZ · ${q.points||7} Punkte${locked?' · 🔒 Gesperrt':''}</div>
+        <div class="bonus-dl">Deadline: ${dl} MEZ · ${q.points||15} Punkte${locked?' · 🔒 Gesperrt':''}</div>
         <select class="bonus-select" id="bs-${d.id}" ${locked?'disabled':''}><option value="">-- ${q.type==='round'?'Runde wählen':'Land wählen'} --</option>${opts}</select>
         ${!locked?`<button class="btn btn-primary btn-full mt-8" onclick="saveBonusTip('${d.id}')">Speichern</button>`:''}
         ${myAns&&!correctAns?`<div class="mytip" style="margin-top:6px">Meine Antwort: <span>${myAns}</span></div>`:''}
@@ -829,7 +843,12 @@ async function renderUebTable(matches){
         let tipStr,ptsBit='';
         if(t!==undefined){
           tipStr=`<span style="font-weight:700">${t.home}:${t.away}</span>`;
-          if(fin){const pts=calcPts(t.home,t.away,m.score.fullTime.home,m.score.fullTime.away);const col=pts.total>=5?'#f5a623':pts.total>=3?'#90cdf4':pts.total>=2?'#a0aec0':pts.total>=1?'#76e4f7':'#fc8181';ptsBit=`<div style="font-size:0.65rem;color:${col};font-weight:700;margin-top:1px">+${pts.total}</div>`;}
+          if(fin){
+const pts = calcPts(t.home, t.away, m.score.fullTime.home, m.score.fullTime.away, m.stage);
+
+
+
+const col=pts.total>=5?'#f5a623':pts.total>=3?'#90cdf4':pts.total>=2?'#a0aec0':pts.total>=1?'#76e4f7':'#fc8181';ptsBit=`<div style="font-size:0.65rem;color:${col};font-weight:700;margin-top:1px">+${pts.total}</div>`;}
         }else{tipStr=`<span style="color:var(--text2)">–:–</span>`;if(fin)ptsBit=`<div style="font-size:0.65rem;color:var(--danger);margin-top:1px">–</div>`;}
         html+=`<td style="text-align:center;padding:5px 3px;border-bottom:1px solid rgba(255,255,255,0.05);border-left:1px solid rgba(255,255,255,0.05)">${tipStr}${ptsBit}</td>`;
       });
@@ -840,16 +859,40 @@ async function renderUebTable(matches){
   }catch(e){el.innerHTML='<p class="text-muted">Fehler: '+e.message+'</p>';}
 }
 
-function calcPts(tipH,tipA,realH,realA){
-  const r=window.APP.scoringRules;
-  tipH=parseInt(tipH);tipA=parseInt(tipA);realH=parseInt(realH);realA=parseInt(realA);
-  if([tipH,tipA,realH,realA].some(isNaN))return{total:0,reason:'Ungültig'};
-  const bonus=(tipH===realH||tipA===realA)&&!(tipH===realH&&tipA===realA)?r.bonus:0;
-  if(tipH===realH&&tipA===realA)return{total:r.exact,reason:'Exakt ⭐'};
-  const td=tipH-tipA,rd=realH-realA,tt=Math.sign(td),rt=Math.sign(rd);
-  if(td===rd&&tt===rt)return{total:r.diff+bonus,reason:'Tordiff.'+(bonus?'+Bonus':'')};
-  if(tt===rt)return{total:r.tend+bonus,reason:'Tendenz'+(bonus?'+Bonus':'')};
-  return{total:bonus,reason:bonus?'Bonus':'Falsch ✗'};
+function calcPts(tipH,tipA,realH,realA,stage){
+  const r = window.APP.scoringRules;
+
+  // 👉 prüfen ob KO-Phase
+  const isKO = KO_STAGES.includes(stage);
+
+  // 👉 Punkte ggf. anpassen
+  const exactPts = isKO ? r.exact * 2 : r.exact;
+  const diffPts = isKO ? r.diff * 2 : r.diff;
+  const tendPts = isKO ? r.tend * 2 : r.tend;
+  const bonusPts = isKO ? r.bonus * 2 : r.bonus;
+
+  tipH=parseInt(tipH);tipA=parseInt(tipA);
+  realH=parseInt(realH);realA=parseInt(realA);
+
+  if([tipH,tipA,realH,realA].some(isNaN))
+    return {total:0,reason:'Ungültig'};
+
+  const bonus = (tipH===realH||tipA===realA)&&!(tipH===realH&&tipA===realA)
+    ? bonusPts : 0;
+
+  if(tipH===realH&&tipA===realA)
+    return {total:exactPts,reason:'Exakt ⭐'};
+
+  const td=tipH-tipA,rd=realH-realA;
+  const tt=Math.sign(td),rt=Math.sign(rd);
+
+  if(td===rd&&tt===rt)
+    return {total:diffPts+bonus,reason:'Tordiff.'+(bonus?'+Bonus':'')};
+
+  if(tt===rt)
+    return {total:tendPts+bonus,reason:'Tendenz'+(bonus?'+Bonus':'')};
+
+  return {total:bonus,reason:bonus?'Bonus':'Falsch ✗'};
 }
 
 window.openUserProfile=async uid=>{
@@ -864,7 +907,8 @@ window.openUserProfile=async uid=>{
     finished.forEach(m=>{
       const t=tips.find(x=>x.id===m.id);
       if(!t){histHtml+=`<div class="th-row"><span class="th-match">${flagImg(m.homeTeam.name)} ${m.homeTeam.name} vs ${m.awayTeam.name} ${flagImg(m.awayTeam.name)}</span><span style="color:var(--danger);font-size:0.75rem">Kein Tipp</span></div>`;return;}
-      const pts=calcPts(t.home,t.away,m.score.fullTime.home,m.score.fullTime.away);
+      const pts = calcPts(t.home, t.away, m.score.fullTime.home, m.score.fullTime.away, m.stage);
+
       histHtml+=`<div class="th-row"><span class="th-match">${flagImg(m.homeTeam.name)} ${m.homeTeam.name} vs ${m.awayTeam.name} ${flagImg(m.awayTeam.name)}</span><span style="color:var(--text2)">${t.home}:${t.away}</span><span style="color:var(--green);font-size:0.75rem">${m.score.fullTime.home}:${m.score.fullTime.away}</span><span class="pts-badge ${ptsCls(pts.total)}" style="font-size:0.68rem">+${pts.total}</span></div>`;
     });
     const bSnap=await getDocs(collection(db,'bonusTips',uid,'answers'));
@@ -1069,7 +1113,7 @@ async function loadAdmin(){
           <div class="fg"><label>Korrekte Tordifferenz</label><input type="number" id="pd" value="${window.APP.scoringRules.diff||3}"></div>
           <div class="fg"><label>Korrekte Tendenz</label><input type="number" id="pt" value="${window.APP.scoringRules.tend||2}"></div>
           <div class="fg"><label>Bonuspunkt (korrekte Tore)</label><input type="number" id="pb" value="${window.APP.scoringRules.bonus||1}"></div>
-          <div class="fg"><label>Bonusfragen</label><input type="number" id="pbq" value="${window.APP.scoringRules.bq||7}"></div>
+          <div class="fg"><label>Bonusfragen</label><input type="number" id="pbq" value="${window.APP.scoringRules.bq||15}"></div>
           <div id="pts-alert"></div>
           <button class="btn btn-primary btn-full" onclick="adminSaveRules()">Speichern</button>
         </div>
@@ -1164,7 +1208,7 @@ window.adminAwardBonus=async qid=>{
     await updateDoc(doc(db,'bonusQuestions',qid),{correctAnswer:ans});
     const uSnap=await getDocs(collection(db,'users'));
     const qSnap=await getDoc(doc(db,'bonusQuestions',qid));
-    const pts=qSnap.data()?.points||7;let awarded=0;
+    const pts=qSnap.data()?.points||15;let awarded=0;
     for(const ud of uSnap.docs){
       const u=ud.data();
       const tipSnap=await getDoc(doc(db,'bonusTips',u.uid,'answers',qid));
@@ -1215,9 +1259,9 @@ window.adminEditChat=async id=>{
 };
 window.adminDeleteChat=async id=>{if(!confirm('Nachricht löschen?'))return;try{await deleteDoc(doc(db,'adminMessages',id));loadAdminChatList();loadAdminChat();}catch(e){alert(e.message);}};
 window.adminDeleteUser=async uid=>{if(!confirm('Benutzer löschen?'))return;try{await deleteDoc(doc(db,'users',uid));loadAdmin();}catch(e){alert(e.message);}};
-window.adminAddBonus=async()=>{const q=document.getElementById('bq-q').value.trim(),dl=document.getElementById('bq-dl').value,type=document.getElementById('bq-type').value;if(!q||!dl)return showAlert('bq-alert','Frage und Deadline ausfüllen.');try{await setDoc(doc(db,'bonusQuestions','bq_'+Date.now()),{question:q,deadline:new Date(dl).toISOString(),points:7,type});showAlert('bq-alert','Gespeichert ✓','success');loadAdmin();}catch(e){showAlert('bq-alert','Fehler: '+e.message);}};
+window.adminAddBonus=async()=>{const q=document.getElementById('bq-q').value.trim(),dl=document.getElementById('bq-dl').value,type=document.getElementById('bq-type').value;if(!q||!dl)return showAlert('bq-alert','Frage und Deadline ausfüllen.');try{await setDoc(doc(db,'bonusQuestions','bq_'+Date.now()),{question:q,deadline:new Date(dl).toISOString(),points:15,type});showAlert('bq-alert','Gespeichert ✓','success');loadAdmin();}catch(e){showAlert('bq-alert','Fehler: '+e.message);}};
 window.adminDeleteBonus=async id=>{if(!confirm('Löschen?'))return;try{await deleteDoc(doc(db,'bonusQuestions',id));loadAdmin();}catch(e){alert(e.message);}};
-window.adminSaveRules=async()=>{const r={exact:parseInt(document.getElementById('pe').value)||5,diff:parseInt(document.getElementById('pd').value)||3,tend:parseInt(document.getElementById('pt').value)||2,bonus:parseInt(document.getElementById('pb').value)||1,bq:parseInt(document.getElementById('pbq').value)||7};try{await setDoc(doc(db,'config','scoring'),r);window.APP.scoringRules=r;showAlert('pts-alert','Gespeichert ✓','success');}catch(e){showAlert('pts-alert','Fehler: '+e.message);}};
+window.adminSaveRules=async()=>{const r={exact:parseInt(document.getElementById('pe').value)||5,diff:parseInt(document.getElementById('pd').value)||3,tend:parseInt(document.getElementById('pt').value)||2,bonus:parseInt(document.getElementById('pb').value)||1,bq:parseInt(document.getElementById('pbq').value)||15};try{await setDoc(doc(db,'config','scoring'),r);window.APP.scoringRules=r;showAlert('pts-alert','Gespeichert ✓','success');}catch(e){showAlert('pts-alert','Fehler: '+e.message);}};
 window.adminReseed=async()=>{const msg=document.getElementById('adm-seed-msg');msg.innerHTML='<p class="text-muted">Schreibe Spielplan...</p>';try{await seedMatches();msg.innerHTML='<div class="alert alert-success">Spielplan aktualisiert ✓</div>';}catch(e){msg.innerHTML=`<div class="alert alert-error">Fehler: ${e.message}</div>`;}};
 
 buildEmojiGrid('reg-emoji-grid','reg-emoji','⚽',null);
