@@ -1187,7 +1187,11 @@ async function recalcMatch(mid,rH,rA){
   for(const ud of uSnap.docs){
     const u=ud.data();const ts=await getDoc(doc(db,'tips',u.uid,'matches',mid));
     if(!ts.exists())continue;
-    const t=ts.data(),pts=calcPts(t.home,t.away,rH,rA);
+    const match = window.APP.matchesCache.find(x => x.id === mid);
+const stage = match?.stage;
+
+const t = ts.data();
+const pts = calcPts(t.home, t.away, rH, rA, stage);
     batch.update(doc(db,'tips',u.uid,'matches',mid),{points:pts.total,reason:pts.reason});
   }
   await batch.commit();
