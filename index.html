@@ -1212,12 +1212,46 @@ window.saveProfile=async()=>{
   try{
     if(pw){if(pw.length<6)return showAlert('prof-alert','Passwort min. 6 Zeichen.');upd.passwordHash=await hashPw(pw);}
     const ok=u.uid,nk=un.toLowerCase();
-    if(nk!==ok){
-      if((await getDoc(doc(db,'users',nk))).exists())return showAlert('prof-alert','Benutzername vergeben.');
-      const nd={...u,...upd,username:un,uid:nk};
-      await setDoc(doc(db,'users',nk),nd);await deleteDoc(doc(db,'users',ok));
-      window.APP.user=nd;
-    }else{
+if(nk!==ok){
+  if((await getDoc(doc(db,'users',nk))).exists())return showAlert('prof-alert','Benutzername vergeben.');
+
+  const nd={...u,...upd,username:un,uid:nk};
+
+  // Alte Tipps laden
+  const [tipsSnap, bonusSnap]=await Promise.all([
+    getDocs(collection(db,'tips',ok,'matches')),
+    getDocs(collection(db,'bonusTips',ok,'answers'))
+  ]);
+
+  // User + Tipps auf neue UID migrieren
+  const batch=writeBatch(db);
+
+  batch.set(doc(db,'users',nk),nd);
+
+  tipsSnap.forEach(s=>{
+    batch.set(doc(db,'tips',nk,'matches',s.id),s.data());
+    batch.delete(doc(db,'tips',ok,'matches',s.id));
+  });
+
+  bonusSnap.forEach(s=>{
+    batch.set(doc(db,'bonusTips',nk,'answers',s.id),s.data());
+    batch.delete(doc(db,'bonusTips',ok,'answers',s.id));
+  });
+
+  batch.delete(doc(db,'users',ok));
+
+  await batch.commit();
+
+  window.APP.user=nd;
+  sessionStorage.setItem('wm2026_user',JSON.stringify({uid:nk}));
+
+  window.APP.tipsCache={};
+  tipsSnap.forEach(s=>{window.APP.tipsCache[s.id]=s.data();});
+
+  window.APP.bonusTipsCache={};
+  bonusSnap.forEach(s=>{window.APP.bonusTipsCache[s.id]=s.data();});
+
+}else{
       await updateDoc(doc(db,'users',ok),{...upd,username:un});
       window.APP.user={...u,...upd,username:un};
     }
