@@ -115,9 +115,11 @@
   .tip-inp:focus{border-color:var(--gold);}
   .tip-inp:disabled{opacity:0.45;cursor:not-allowed;}
   .tip-dash{font-size:1rem;color:var(--text2);}
-  .tip-btn{margin-left:auto;padding:7px 14px;border-radius:8px;font-size:0.78rem;font-weight:700;cursor:pointer;border:none;background:var(--gold);color:#000;transition:all 0.2s;white-space:nowrap;}
+.tip-btn{margin-left:auto;padding:7px 14px;border-radius:8px;font-size:0.78rem;font-weight:700;cursor:pointer;border:none;background:var(--gold);color:#000;transition:all 0.2s;white-space:nowrap;}
+  .tip-btn.saved{background:var(--green);color:#fff;}
   .tip-btn:disabled{background:rgba(255,255,255,0.1);color:var(--text2);cursor:not-allowed;}
   .tip-btn:hover:not(:disabled){background:#e0941f;}
+  .tip-btn.saved:hover:not(:disabled){background:#219653;}
   .result-box{display:flex;align-items:center;justify-content:center;gap:10px;padding:8px;background:rgba(39,174,96,0.1);border-radius:8px;border:1px solid rgba(39,174,96,0.2);}
   .result-score{font-size:1.3rem;font-weight:900;color:var(--green);}
   .pts-badge{display:inline-block;padding:3px 9px;border-radius:20px;font-size:0.78rem;font-weight:700;}
@@ -679,7 +681,7 @@ function renderTippsRound(matches){
   const el=document.getElementById('tipps-content');
   if(!matches.length){el.innerHTML='<p class="text-muted text-center" style="padding:24px">Keine Spiele.</p>';return;}
   const isGP=matches[0]?.stage==='GROUP_STAGE';
-  let html='';
+  let html='<div class="card" style="padding:12px 14px;font-size:0.82rem;color:var(--text2);border-color:rgba(245,166,35,0.35)">💡 Jeder Tipp muss einzeln mit <strong style="color:var(--gold)">Tippen</strong> bestätigt werden. <span style="color:var(--green);font-weight:700">Grün</span> bedeutet gespeichert, <span style="color:var(--gold);font-weight:700">Gelb</span> bedeutet noch nicht gespeichert oder geändert.</div>';
   if(isGP){const byDay={};matches.forEach(m=>{const d=fmtDay(m.utcDate);if(!byDay[d])byDay[d]=[];byDay[d].push(m);});Object.entries(byDay).forEach(([day,ms])=>{html+=`<div style="font-size:0.78rem;color:var(--text2);margin:10px 0 5px;font-weight:700;text-transform:uppercase;letter-spacing:1px">${day}</div>`;ms.forEach(m=>{html+=buildMatchCard(m);});});}
   else{matches.forEach(m=>{html+=buildMatchCard(m);});}
   el.innerHTML=html;
@@ -708,6 +710,7 @@ ta = `<div class="tip-row">
     id="th-${m.id}"
     value="${h !== '' ? h : ''}"
     placeholder="0"
+    oninput="markTipDirty('${m.id}')"
     onfocus="if(this.value=='0') this.value=''; this.select();">
 
   <span class="tip-dash">:</span>
@@ -716,13 +719,13 @@ ta = `<div class="tip-row">
     id="ta-${m.id}"
     value="${a !== '' ? a : ''}"
     placeholder="0"
+    oninput="markTipDirty('${m.id}')"
     onfocus="if(this.value=='0') this.value=''; this.select();">
 
-  <button class="tip-btn" id="tb-${m.id}" onclick="saveTip('${m.id}')">
-    ${tip?'✓ Ändern':'Tippen'}
+  <button class="tip-btn ${tip?'saved':''}" id="tb-${m.id}" onclick="saveTip('${m.id}')">
+    ${tip?'✓ Gespeichert':'Tippen'}
   </button>
 </div>`;
-
   }
   return `<div class="match-card ${locked?'locked':''} ${finished?'finished':''} ${isTest?'test-match':''}" id="mc-${m.id}">
     <div class="mc-meta"><span class="mc-label">${m.group||m.round}</span>${testBadge}<span class="mc-time">${fmtMEZ(m.utcDate)} MEZ</span>${sb}</div>
@@ -736,6 +739,16 @@ function scheduleAutoLock(m){
   const t=new Date(m.utcDate).getTime()-Date.now()-60000;
   if(t>0&&t<3600000)setTimeout(()=>{const h=document.getElementById('th-'+m.id),a=document.getElementById('ta-'+m.id),b=document.getElementById('tb-'+m.id);if(h)h.disabled=true;if(a)a.disabled=true;if(b){b.disabled=true;b.textContent='🔒';}},t);
 }
+
+
+window.markTipDirty=mid=>{
+  const btn=document.getElementById('tb-'+mid);
+  if(!btn)return;
+  btn.classList.remove('saved');
+  btn.textContent='Tippen';
+};
+
+
 window.saveTip=async mid=>{
   const uid=window.APP.user.uid;
 let hRaw = document.getElementById('th-'+mid)?.value;
@@ -758,8 +771,13 @@ if(locked) return alert('Tipp ist gesperrt.');
   try{
     await setDoc(doc(db,'tips',uid,'matches',mid),{home:h,away:a,savedAt:new Date().toISOString()});
     window.APP.tipsCache[mid]={home:h,away:a};
-    const btn=document.getElementById('tb-'+mid);
-    if(btn){btn.textContent='✓ Gespeichert';setTimeout(()=>{if(btn)btn.textContent='✓ Ändern';},1500);}
+
+const btn=document.getElementById('tb-'+mid);
+    if(btn){
+      btn.classList.add('saved');
+      btn.textContent='✓ Gespeichert';
+    }
+
     await updateDoc(doc(db,'users',uid),{totalTips:Object.keys(window.APP.tipsCache).length});
   }catch(e){alert('Fehler: '+e.message);}
 };
