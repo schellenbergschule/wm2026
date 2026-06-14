@@ -158,6 +158,19 @@
   .bqa-row .bqa-name{flex:1;}
   .bqa-row .bqa-ans{color:var(--gold);font-weight:700;}
   @media(min-width:600px){#main{max-width:600px;margin:0 auto;}#bottom-nav{justify-content:center;}.nav-item{max-width:100px;}}
+
+#home-top {
+  scroll-margin-top: 70px;
+}
+
+#rangliste-top {
+  scroll-margin-top: 70px;
+}
+
+#profil-top {
+  scroll-margin-top: 70px;
+}
+
 </style>
 
 <link rel="manifest" href="manifest.json">
@@ -202,6 +215,7 @@
 
 <main id="main" class="hidden">
   <div id="page-home" class="page active">
+    <div id="home-top"></div>
     <div id="user-banner-home"></div>
     <div class="hero-card">
       <h1>WM <span>2026</span> Tippspiel</h1>
@@ -228,11 +242,13 @@
   </div>
 
   <div id="page-rangliste" class="page">
+    <div id="rangliste-top"></div>
     <div class="section-title">🏆 Rangliste</div>
     <div id="rangliste-content"><div class="loading-text">Lade...</div></div>
   </div>
 
   <div id="page-profil" class="page">
+    <div id="profil-top"></div>
     <div class="section-title">👤 Mein Profil</div>
     <div id="profil-content"></div>
   </div>
@@ -533,7 +549,22 @@ function showApp(){
   document.getElementById('header-username').textContent=u.username;
   applyTheme(u);
   if(u.isAdmin)document.getElementById('nav-admin').classList.remove('hidden');
-  loadMatchesCache().then(()=>{showPage('home');startRankingListener();});
+
+loadMatchesCache().then(async ()=>{
+  // 👉 Tipps vorladen
+  const uid = window.APP.user.uid;
+  const ts = await getDocs(collection(db,'tips',uid,'matches'));
+  window.APP.tipsCache = {};
+  ts.forEach(d => {
+    window.APP.tipsCache[d.id] = d.data();
+  });
+
+  showPage('home');
+  startRankingListener();
+});
+
+
+
 }
 function applyTheme(u){const h=document.getElementById('app-header');if(u.bgColor)h.style.background=u.bgColor;if(u.textColor)h.style.color=u.textColor;}
 
@@ -560,16 +591,52 @@ async function seedMatches(){
   window.APP.matchesCache=[];snap2.forEach(d=>window.APP.matchesCache.push(d.data()));
 }
 
+window.goToMatchTip = mid => {
+  showPage('tipps');
+
+  // kleinen Delay, bis Seite gerendert ist
+  setTimeout(() => {
+    const elTarget = document.getElementById('mc-' + mid);
+    if (elTarget) {
+      elTarget.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, 200);
+};
+
 window.showPage=name=>{
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('page-'+name)?.classList.add('active');
   document.getElementById('nav-'+name)?.classList.add('active');
-  if(name==='home')loadHome();
+if(name==='home'){
+  loadHome();
+
+  setTimeout(() => {
+    const el = document.getElementById('home-top');
+    el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 50);
+}
   if(name==='tipps')loadTipps();
   if(name==='uebersicht')loadUebersicht();
-  if(name==='rangliste')renderRangliste();
-  if(name==='profil')loadProfil();
+
+if(name==='rangliste'){
+  renderRangliste();
+
+  setTimeout(() => {
+    const el = document.getElementById('rangliste-top');
+    el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 50);
+}
+
+if(name==='profil'){
+  loadProfil();
+
+  setTimeout(() => {
+    const el = document.getElementById('profil-top');
+    el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 50);
+}
+
   if(name==='admin'&&window.APP.user?.isAdmin)loadAdmin();
 };
 
@@ -599,8 +666,18 @@ function loadNextMatch(){
   const now=Date.now();
   const m=window.APP.matchesCache.find(x=>new Date(x.utcDate).getTime()>now&&x.status!=='FINISHED');
   if(!m){c.innerHTML='<p class="text-muted text-center" style="padding:12px">Alle Spiele beendet.</p>';return;}
-  c.innerHTML=`<div class="next-match"><p style="font-size:0.7rem;color:var(--text2);margin-bottom:6px">NÄCHSTES SPIEL</p>
+
+const tip = window.APP.tipsCache?.[m.id];
+
+  c.innerHTML=`<div class="next-match" onclick="goToMatchTip('${m.id}')" style="cursor:pointer"><p style="font-size:0.7rem;color:var(--text2);margin-bottom:6px">NÄCHSTES SPIEL</p>
     <div class="teams-row">${flagImg(m.homeTeam.name,true)} <b>${m.homeTeam.name}</b> <span style="color:var(--gold)">VS</span> <b>${m.awayTeam.name}</b> ${flagImg(m.awayTeam.name,true)}</div>
+
+<div style="text-align:center;margin-top:6px;font-size:0.8rem;font-weight:700;
+  color:${tip ? 'var(--green)' : 'var(--gold)'}">
+  ${tip ? '✓ Getippt' : '⚠️ Noch nicht getippt'}
+</div>
+
+
     <div style="font-size:0.75rem;color:var(--text2);text-align:center;margin-top:4px">📅 ${fmtMEZ(m.utcDate)} MEZ · ${m.round}</div>
   </div><div id="cdwrap" style="margin-top:12px"></div>`;
   startCountdown(new Date(m.utcDate),document.getElementById('cdwrap'));
