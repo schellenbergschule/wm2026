@@ -1293,6 +1293,44 @@ window.openUserProfile=async uid=>{
     const tipsSnap=await getDocs(collection(db,'tips',uid,'matches'));
     const tips=[];tipsSnap.forEach(d=>tips.push({id:d.id,...d.data()}));
     const finished=window.APP.matchesCache.filter(m=>m.status==='FINISHED');
+
+// 👉 Rang-Cache laden
+const statsSnap = await getDoc(doc(db, 'userStats', uid));
+
+let cachedRank = null;
+
+if (statsSnap.exists()) {
+  cachedRank = statsSnap.data().rankHistory;
+}
+
+
+    // 👉 Daten für Punkte-Chart
+const chartLabels = [];
+const chartData = [];
+const chartMatches = [];
+const chartTips = [];   // 👉 NEU
+
+finished.forEach((m, i) => {
+  const t = tips.find(x => x.id === m.id);
+
+  if (!t) return;
+
+  const pts = calcPts(
+    t.home,
+    t.away,
+    m.score.fullTime.home,
+    m.score.fullTime.away,
+    m.stage
+  );
+
+  chartLabels.push(i + 1);
+  chartData.push(pts.total);
+
+  chartMatches.push(m);   // Spiel
+  chartTips.push(t);      // 👉 Tipp speichern
+});
+
+
     let histHtml='';
     finished.forEach(m=>{
       const t=tips.find(x=>x.id===m.id);
@@ -1322,12 +1360,282 @@ const locked=Date.now()>=new Date(q.deadline).getTime();if(!locked)return;
         <div class="stat-box"><div class="sv">${u.correctTend||0}</div><div class="sl">Tendenz korrekt</div></div>
         <div class="stat-box"><div class="sv">${u.bonusPts||0}</div><div class="sl">Bonuspunkte</div></div>
       </div>
+      <div class="divider"></div>
+
+<h3 style="font-size:0.88rem;font-weight:700;margin-bottom:8px;color:var(--gold)">
+📈 Punkteverlauf
+</h3>
+
+<canvas id="chart-points" height="120"></canvas>
+
+<div class="divider"></div>
+
+<h3 style="font-size:0.88rem;font-weight:700;margin-bottom:8px;color:var(--gold)">
+🥇 Rangverlauf
+</h3>
+
+<canvas id="chart-rank" height="120"></canvas>
+
       ${finished.length?`<div class="divider"></div><h3 style="font-size:0.88rem;font-weight:700;margin-bottom:8px;color:var(--gold)">📋 Tipp-Verlauf</h3><div class="tip-history">${histHtml||'<p class="text-muted">Noch keine beendeten Spiele.</p>'}</div>`:''}
       ${bonusHtml?`<div class="divider"></div><h3 style="font-size:0.88rem;font-weight:700;margin-bottom:8px;color:var(--gold)">❓ Bonusfragen</h3><div class="tip-history">${bonusHtml}</div>`:''}
       ${isMe?`<div class="divider"></div><button class="btn btn-secondary btn-full btn-sm" onclick="closeModal('profile-modal');showPage('profil')">⚙️ Profil bearbeiten</button>`:''}`;
-    document.getElementById('profile-modal').classList.add('open');
+
+setTimeout(() => {
+  const ctx = document.getElementById('chart-points');
+
+  if (!ctx) return;
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: chartLabels,
+        datasets: [{
+          data: chartData,
+          backgroundColor: chartData.map(p => 
+            p >= 5 ? 'rgba(245,166,35,0.8)' :   // Gold (perfekt)
+            p >= 3 ? 'rgba(144,205,244,0.8)' : // Blau
+            p >= 2 ? 'rgba(160,174,192,0.8)' : // Grau
+            p >= 1 ? 'rgba(118,228,247,0.8)' : // Türkis
+                     'rgba(252,129,129,0.8)'   // Rot
+          ),
+          borderRadius: 4
+        }]
+    },
+    options: {
+      plugins: {
+tooltip: {
+  callbacks: {
+
+    // 👉 Titel = Spiel
+    title: (ctx) => {
+      const i = ctx[0].dataIndex;
+      const m = chartMatches[i];
+
+      if (!m) return '';
+
+      return `${m.homeTeam.name} vs ${m.awayTeam.name}`;
+    },
+
+    // 👉 Details (mehrere Zeilen!)
+    label: (ctx) => {
+      const i = ctx.dataIndex;
+      const p = ctx.raw;
+
+      const m = chartMatches[i];
+      const t = chartTips[i];
+
+      if (!m || !t) return '';
+
+      const resH = m.score.fullTime.home;
+      const resA = m.score.fullTime.away;
+
+      const lines = [];
+
+      // ✅ Tipp anzeigen
+      lines.push(`Tipp: ${t.home}:${t.away}`);
+
+      // ✅ Ergebnis anzeigen
+      lines.push(`Ergebnis: ${resH}:${resA}`);
+
+      // ✅ Bewertung
+      if (p === 5) lines.push("Perfekt! ⭐ (5 Punkte)");
+      else if (p >= 3) lines.push(`Gut 👍 (${p} Punkte)`);
+      else if (p >= 1) lines.push(`Tendenz ✅ (${p} Punkte)`);
+      else lines.push("Falsch ❌");
+
+      return lines;
+    }
+  }
+},
+
+  legend: { display: false }
+},
+      scales: {
+        x: {
+          title: { display: true, text: 'Spiele' }
+        },
+        y: {
+          beginAtZero: true
+        }
+      }
+    }
+  });
+}, 100);
+
+
+document.getElementById('profile-modal').classList.add('open');
+
+// ✅ zuerst versuchen: Cache benutzen
+if (cachedRank && cachedRank.length) {
+
+  const ctxRank = document.getElementById('chart-rank');
+
+  new Chart(ctxRank, {
+    type: 'line',
+    data: {
+      labels: cachedRank.map((_, i) => i + 1),
+      datasets: [{
+        data: cachedRank,
+        borderColor: '#90cdf4',
+        backgroundColor: 'rgba(144,205,244,0.2)',
+        tension: 0.3,
+        fill: false
+      }]
+    },
+    options: {
+      plugins: { legend: { display: false }},
+      scales: {
+  y: {
+    reverse: true,
+
+    min: 1,
+    max: window.APP.rankingCache.length, // 👈 Anzahl User
+
+    ticks: {
+      stepSize: 1,
+      precision: 0
+    },
+
+    title: {
+      display: true,
+      text: 'Rang'
+    }
+  }
+}
+    }
+  });
+
+} else {
+
+  // ❗ fallback nur wenn kein Cache existiert
+  buildRankChart(uid, finished);
+}
+
   }catch(e){console.error(e);}
 };
+
+
+async function buildRankChart(uid, finished){
+
+  const ctxRank = document.getElementById('chart-rank');
+  if (!ctxRank) return;
+
+  // 👉 Ladeanzeige
+  ctxRank.parentElement.insertAdjacentHTML(
+    'beforeend',
+    '<div style="text-align:center;color:var(--text2);font-size:0.75rem;margin-top:6px">Berechne Rang…</div>'
+  );
+
+  const rankLabels = [];
+  const rankData = [];
+
+  for (let i = 0; i < finished.length; i++) {
+
+    const matchesSoFar = finished.slice(0, i + 1);
+    let ranking = [];
+
+    for (const u of window.APP.rankingCache) {
+
+      let ptsSum = 0;
+
+      for (const m of matchesSoFar) {
+
+const t = allTips[u.uid][m.id];
+if (!t) continue;
+
+        const pts = calcPts(
+          t.home,
+          t.away,
+          m.score.fullTime.home,
+          m.score.fullTime.away,
+          m.stage
+        );
+
+        ptsSum += pts.total;
+      }
+
+      ranking.push({ uid: u.uid, pts: ptsSum });
+    }
+
+    ranking.sort((a, b) => b.pts - a.pts);
+
+    const pos = ranking.findIndex(r => r.uid === uid) + 1;
+
+    rankLabels.push(i + 1);
+    rankData.push(pos);
+  }
+
+
+
+  // 👉 Chart zeichnen (erst jetzt!)
+  new Chart(ctxRank, {
+    type: 'line',
+    data: {
+      labels: rankLabels,
+      datasets: [{
+        data: rankData,
+        borderColor: '#90cdf4',
+        backgroundColor: 'rgba(144,205,244,0.2)',
+        tension: 0.3,
+        fill: true
+      }]
+    },
+    options: {
+      plugins: { legend: { display: false }},
+      scales: {
+        y: {
+          reverse: true,
+          ticks: { precision: 0 }
+        }
+      }
+    }
+  });
+}
+
+
+window.appendRankHistoryForMatch = async function (match) {
+
+  console.log("Berechne Rang für neues Spiel:", match.id);
+
+  const usersSnap = await getDocs(collection(db, 'users'));
+  const users = [];
+  usersSnap.forEach(d => users.push(d.data()));
+
+  // 👉 bestehende Rangverläufe holen
+  const stats = {};
+  for (const u of users) {
+    const snap = await getDoc(doc(db, 'userStats', u.uid));
+    stats[u.uid] = snap.exists() ? snap.data().rankHistory || [] : [];
+  }
+
+  // 👉 aktuelles Ranking (nach neuem Spiel)
+  const currentRanking = users.map(u => ({
+    uid: u.uid,
+    pts: u.points || 0
+  }));
+
+  currentRanking.sort((a, b) => b.pts - a.pts);
+
+  // 👉 neuen Rang anhängen
+  for (const user of users) {
+
+    const pos = currentRanking.findIndex(r => r.uid === user.uid) + 1;
+
+    const history = stats[user.uid] || [];
+    history.push(pos);
+
+    await setDoc(doc(db, 'userStats', user.uid), {
+      rankHistory: history,
+      updatedAt: new Date().toISOString()
+    }, { merge: true });
+
+    console.log("✅ updated:", user.username, pos);
+  }
+
+  console.log("✅ Rangverlauf erweitert!");
+};
+
+
 window.closeModal=id=>document.getElementById(id)?.classList.remove('open');
 
 function loadProfil(){
@@ -1578,7 +1886,15 @@ window.adminSaveMatchFull=async mid=>{
       if(hasResult){m.status='FINISHED';m.score={fullTime:{home:h,away:a}};}}
     if(hasResult){
       showAlert('adm-edit-msg',`${home} ${h}:${a} ${away} — berechne Punkte...`,'success');
-      await recalcMatch(mid,h,a);
+
+await recalcMatch(mid,h,a);
+
+// 👉 Match-Objekt holen
+const match = window.APP.matchesCache.find(m => m.id === mid);
+
+// 👉 Rangverlauf erweitern (NEU – schnell)
+await appendRankHistoryForMatch(match);
+
       showAlert('adm-edit-msg',`${home} ${h}:${a} ${away} — Punkte aktualisiert ✓`,'success');
       setTimeout(loadAdmin,1800);
     }else{
@@ -1704,6 +2020,86 @@ if (finalMatch) {
 
   }catch(e){}
 }
+
+
+window.rebuildAllRankHistories = async function rebuildAllRankHistories() {
+
+  console.log("Starte Rebuild...");
+
+  const usersSnap = await getDocs(collection(db, 'users'));
+
+  const users = [];
+  usersSnap.forEach(d => users.push(d.data()));
+
+  const finished = window.APP.matchesCache.filter(m => m.status === 'FINISHED');
+
+  console.log("Users:", users.length, "Matches:", finished.length);
+
+  // 👉 Alle Tipps einmal laden
+  const allTips = {};
+
+  for (const u of users) {
+    const snap = await getDocs(collection(db, 'tips', u.uid, 'matches'));
+
+    allTips[u.uid] = {};
+    snap.forEach(d => {
+      allTips[u.uid][d.id] = d.data();
+    });
+  }
+
+  // 👉 Für jeden User Rangverlauf berechnen
+  for (const user of users) {
+
+    const rankData = [];
+
+    for (let i = 0; i < finished.length; i++) {
+
+      const matchesSoFar = finished.slice(0, i + 1);
+
+      let ranking = [];
+
+      for (const u of users) {
+
+        let ptsSum = 0;
+
+        for (const m of matchesSoFar) {
+
+          const t = allTips[u.uid][m.id];
+          if (!t) continue;
+
+          const pts = calcPts(
+            t.home,
+            t.away,
+            m.score.fullTime.home,
+            m.score.fullTime.away,
+            m.stage
+          );
+
+          ptsSum += pts.total;
+        }
+
+        ranking.push({ uid: u.uid, pts: ptsSum });
+      }
+
+      ranking.sort((a, b) => b.pts - a.pts);
+
+      const pos = ranking.findIndex(r => r.uid === user.uid) + 1;
+
+      rankData.push(pos);
+    }
+
+    // 👉 speichern
+    await setDoc(doc(db, 'userStats', user.uid), {
+      rankHistory: rankData,
+      updatedAt: new Date().toISOString()
+    }, { merge: true });
+
+    console.log("✅ gespeichert für:", user.username);
+  }
+
+  console.log("🎉 Rebuild fertig!");
+}
+
 window.adminEditChat=async id=>{
   try{const snap=await getDoc(doc(db,'adminMessages',id));if(!snap.exists())return;const ed=document.getElementById('chat-editor');ed.innerHTML=snap.data().html;window._editingChatId=id;const btn=document.querySelector('[onclick="adminPostChat()"]');if(btn)btn.textContent='💾 Aktualisieren';ed.scrollIntoView({behavior:'smooth'});ed.focus();}catch(e){alert(e.message);}
 };
@@ -1727,5 +2123,7 @@ if ("serviceWorker" in navigator) {
   });
 }
 </script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 </body>
 </html>
