@@ -685,6 +685,23 @@ function renderTippsRound(matches){
   if(isGP){const byDay={};matches.forEach(m=>{const d=fmtDay(m.utcDate);if(!byDay[d])byDay[d]=[];byDay[d].push(m);});Object.entries(byDay).forEach(([day,ms])=>{html+=`<div style="font-size:0.78rem;color:var(--text2);margin:10px 0 5px;font-weight:700;text-transform:uppercase;letter-spacing:1px">${day}</div>`;ms.forEach(m=>{html+=buildMatchCard(m);});});}
   else{matches.forEach(m=>{html+=buildMatchCard(m);});}
   el.innerHTML=html;
+
+// 👉 zum aktuellen (noch offenen) Spiel scrollen
+const targetMatch = matches.find(m => !isLocked(m.utcDate));
+
+// 👉 Fallback: falls alles gesperrt → letztes Spiel
+const finalMatch = targetMatch || matches[matches.length - 1];
+
+if (finalMatch) {
+  setTimeout(() => {
+    const elTarget = document.getElementById('mc-' + finalMatch.id);
+    if (elTarget) {
+      elTarget.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, 50);
+}
+
+
   matches.forEach(scheduleAutoLock);
 }
 function buildMatchCard(m){
@@ -804,15 +821,33 @@ async function renderBonusTipps(){
       html+=`<div class="bonus-card">
         <h3>${q.question}</h3>
         <div class="bonus-dl">Deadline: ${dl} MEZ · ${q.points||15} Punkte${locked?' · 🔒 Gesperrt':''}</div>
-        <select class="bonus-select" id="bs-${d.id}" ${locked?'disabled':''}><option value="">-- ${q.type==='round'?'Runde wählen':'Land wählen'} --</option>${opts}</select>
-        ${!locked?`<button class="btn btn-primary btn-full mt-8" onclick="saveBonusTip('${d.id}')">Speichern</button>`:''}
+
+<select class="bonus-select" id="bs-${d.id}" ${locked?'disabled':''} oninput="markBonusDirty('${d.id}')">
+
+<option value="">-- ${q.type==='round'?'Runde wählen':'Land wählen'} --</option>${opts}</select>
+
+${!locked?`<button class="tip-btn ${myAns?'saved':''}" id="bq-${d.id}" onclick="saveBonusTip('${d.id}')">${myAns?'✓ Gespeichert':'Tippen'}</button>`:''}
+
         ${myAns&&!correctAns?`<div class="mytip" style="margin-top:6px">Meine Antwort: <span>${myAns}</span></div>`:''}
         ${result}
       </div>`;
     });
     el.innerHTML=html;
+
+
+
   }catch(e){el.innerHTML='<p class="text-muted">Fehler: '+e.message+'</p>';}
 }
+
+
+window.markBonusDirty=qid=>{
+  const btn=document.getElementById('bq-'+qid);
+  if(!btn)return;
+  btn.classList.remove('saved');
+  btn.textContent='Tippen';
+};
+
+
 window.saveBonusTip=async qid=>{
   const ans=document.getElementById('bs-'+qid)?.value;
   if(!ans)return alert('Bitte eine Antwort wählen.');
@@ -827,8 +862,17 @@ if (locked) return alert('Bonusfrage ist gesperrt.');
   try{
     await setDoc(doc(db,'bonusTips',uid,'answers',qid),{answer:ans,savedAt:new Date().toISOString()});
     window.APP.bonusTipsCache[qid]={answer:ans};
-    const btn=document.querySelector(`[onclick="saveBonusTip('${qid}')"]`);
-    if(btn){btn.textContent='✓ Gespeichert';setTimeout(()=>{if(btn)btn.textContent='Speichern';},1500);}
+
+
+
+const btn=document.getElementById('bq-'+qid);
+if(btn){
+  btn.classList.add('saved');
+  btn.textContent='✓ Gespeichert';
+}
+renderBonusTipps();
+
+
   }catch(e){alert('Fehler: '+e.message);}
 };
 
@@ -901,7 +945,12 @@ async function renderUebTable(matches){
  matches.forEach(m=>{
       const fin=m.status==='FINISHED'&&m.score?.fullTime;
       const score=fin?`<div style="color:var(--green);font-weight:900;font-size:0.85rem">${m.score.fullTime.home}:${m.score.fullTime.away}</div>`:`<div style="color:var(--text2);font-size:0.75rem">offen</div>`;
-      html+=`<th style="text-align:center;padding:6px 4px;width:${colW}px;border-bottom:2px solid var(--cb);border-left:1px solid rgba(255,255,255,0.05)"><div style="font-size:0.68rem;line-height:1.4;color:var(--text)">${shortName(m)}</div>${score}</th>`;
+
+html+=`<th id="col-${m.id}" style="text-align:center;padding:6px 4px;width:${colW}px;border-bottom:2px solid var(--cb);border-left:1px solid rgba(255,255,255,0.05)">
+
+
+
+<div style="font-size:0.68rem;line-height:1.4;color:var(--text)">${shortName(m)}</div>${score}</th>`;
     });
     html+=`</tr></thead><tbody>`;
     users.forEach((u,ri)=>{
@@ -970,6 +1019,28 @@ async function renderUebTable(matches){
     });
     html+=`</tbody></table></div>`;
     el.innerHTML=html;
+
+// 👉 Relevantes Spiel bestimmen (Übersicht)
+const finishedMatches = matches.filter(m => m.status === 'FINISHED');
+
+let targetMatch;
+
+if (finishedMatches.length > 0) {
+  targetMatch = finishedMatches[finishedMatches.length - 1];
+}
+
+// 👉 Scrollen
+if (targetMatch) {
+  setTimeout(() => {
+    const elTarget = document.getElementById('col-' + targetMatch.id);
+    if (elTarget) {
+      elTarget.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    }
+  }, 50);
+}
+
+
+
   }catch(e){el.innerHTML='<p class="text-muted">Fehler: '+e.message+'</p>';}
 }
 
@@ -1534,6 +1605,26 @@ async function loadAdminChatList(){
     let h='';
     snap.forEach(d=>{const m=d.data();h+=`<div style="display:flex;align-items:flex-start;gap:8px;padding:8px;background:rgba(255,255,255,0.03);border-radius:8px;margin-bottom:5px"><div style="flex:1;font-size:0.8rem;overflow:hidden">${m.html}</div><div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0"><button class="btn btn-secondary btn-sm" onclick="adminEditChat('${d.id}')">✏️</button><button class="btn btn-danger btn-sm" onclick="adminDeleteChat('${d.id}')">🗑️</button></div></div>`;});
     el.innerHTML=h;
+
+// 👉 zum aktuellen (noch offenen) Spiel im Admin scrollen
+const matches = window.APP.matchesCache;
+
+const targetMatch = matches.find(m => !isLocked(m.utcDate));
+
+// 👉 Fallback: letztes Spiel
+const finalMatch = targetMatch || matches[matches.length - 1];
+
+if (finalMatch) {
+  setTimeout(() => {
+    // Admin nutzt KEINE mc- IDs → wir scrollen über Score-Feld
+    const elTarget = document.getElementById('ah-' + finalMatch.id);
+    if (elTarget) {
+      elTarget.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, 50);
+}
+
+
   }catch(e){}
 }
 window.adminEditChat=async id=>{
