@@ -713,31 +713,70 @@ function startRankingListener(){
   });
 }
 
+
 function renderRangliste(){
-  const el=document.getElementById('rangliste-content'),data=window.APP.rankingCache||[];
-  if(!data.length){el.innerHTML='<p class="loading-text">Lade...</p>';return;}
-  let h='',rank=1;
-  data.forEach((u,i)=>{
-    if(i>0&&u.points<data[i-1].points)rank=i+1;
-    const medal=rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':`${rank}.`;
-    const mc=rank===1?'gold':rank===2?'silver':rank===3?'bronze':'';
-    const tc=rank===1?'gt':rank===2?'st':rank===3?'bt':'';
-    h+=`<div class="rank-row ${mc}" onclick="openUserProfile('${u.uid}')">
-      <span class="rank-pos ${tc}">${medal}</span>
-      <div class="rank-info">
-        <div class="rank-name">${u.emoji||'⚽'} ${u.username}</div>
-        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">
-          <span style="font-size:0.72rem;color:var(--text2)">⭐${u.correctExact||0} Exakt</span>
-          <span style="font-size:0.72rem;color:var(--text2)">↗️${u.correctDiff||0} Diff.</span>
-          <span style="font-size:0.72rem;color:var(--text2)">✅${u.correctTend||0} Tend.</span>
-          ${u.gameBonusPts?`<span style="font-size:0.72rem;color:var(--text2)">🎯${u.gameBonusPts} Spiel-Boni</span>`:''}
-          ${u.bonusPts?`<span style="font-size:0.72rem;color:var(--text2)">❓${u.bonusPts} Bonusfragen</span>`:''}
-        </div>
-      </div>
-      <span class="rank-pts">${u.points||0} Pts</span>
-    </div>`;
-  });
-  el.innerHTML=h;
+  const el=document.getElementById('rangliste-content'),data=window.APP.rankingCache||[];  
+
+  if(!data.length){
+    el.innerHTML='<p class="loading-text">Lade...</p>';
+    return;
+  }
+
+  const maxExact = Math.max(0, ...data.map(u => u.correctExact || 0));
+  const maxDiff = Math.max(0, ...data.map(u => u.correctDiff || 0));
+  const maxTend = Math.max(0, ...data.map(u => u.correctTend || 0));
+  const maxGameBonus = Math.max(0, ...data.map(u => u.gameBonusPts || 0));
+
+  const leadStyle = (value, max) => {
+    return value > 0 && value === max
+      ? 'color:var(--gold);font-weight:900'
+      : 'color:var(--text2)';
+  };
+
+  let h='',rank=1;  
+
+  data.forEach((u,i)=>{  
+    if(i>0&&u.points<data[i-1].points)rank=i+1;  
+
+    const medal=rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':`${rank}.`;  
+    const mc=rank===1?'gold':rank===2?'silver':rank===3?'bronze':'';  
+    const tc=rank===1?'gt':rank===2?'st':rank===3?'bt':'';  
+
+    const exactVal = u.correctExact || 0;
+    const diffVal = u.correctDiff || 0;
+    const tendVal = u.correctTend || 0;
+    const gameBonusVal = u.gameBonusPts || 0;
+    const bonusQuestionVal = u.bonusPts || 0;
+
+    h+=`<div class="rank-row ${mc}" onclick="openUserProfile('${u.uid}')">  
+      <span class="rank-pos ${tc}">${medal}</span>  
+      <div class="rank-info">  
+        <div class="rank-name">${u.emoji||'⚽'} ${u.username}</div>  
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">  
+
+          <span style="font-size:0.72rem;${leadStyle(exactVal, maxExact)}">
+            ⭐${exactVal} Exakt
+          </span>  
+
+          <span style="font-size:0.72rem;${leadStyle(diffVal, maxDiff)}">
+            ↗️${diffVal} Diff.
+          </span>  
+
+          <span style="font-size:0.72rem;${leadStyle(tendVal, maxTend)}">
+            ✅${tendVal} Tend.
+          </span>  
+
+          ${gameBonusVal ? `<span style="font-size:0.72rem;${leadStyle(gameBonusVal, maxGameBonus)}">🎯${gameBonusVal} Spiel-Boni</span>` : ''}  
+
+          ${bonusQuestionVal ? `<span style="font-size:0.72rem;color:var(--text2)">❓${bonusQuestionVal} Bonusfragen</span>` : ''}  
+
+        </div>  
+      </div>  
+      <span class="rank-pts">${u.points||0} Pts</span>  
+    </div>`;  
+  });  
+
+  el.innerHTML=h;  
 }
 
 async function loadTipps(){
