@@ -533,7 +533,7 @@ window.doRegister=async(e)=>{
   try{const key=un.toLowerCase();
     if((await getDoc(doc(db,'users',key))).exists())return showAlert('reg-alert','Benutzername vergeben.');
     const hash=await hashPw(pw),isAdmin=key==='mathemagier';
-    const ud={uid:key,username:un,emoji:em,passwordHash:hash,banner:0,bgColor:'#0a0e27',textColor:'#ffffff',isAdmin,points:0,correctExact:0,correctTend:0,correctDiff:0,bonusPts:0,totalTips:0,createdAt:serverTimestamp()};
+    const ud={uid:key,username:un,emoji:em,passwordHash:hash,banner:0,bgColor:'#0a0e27',textColor:'#ffffff',isAdmin,points:0,correctExact:0,correctTend:0,correctDiff:0,gameBonusPts:0,bonusPts:0,totalTips:0,createdAt:serverTimestamp()};   
     await setDoc(doc(db,'users',key),ud);await loginUser(ud);}catch(e){showAlert('reg-alert','Fehler: '+e.message);}
 };
 async function loginUser(data){
@@ -730,7 +730,8 @@ function renderRangliste(){
           <span style="font-size:0.72rem;color:var(--text2)">⭐${u.correctExact||0} Exakt</span>
           <span style="font-size:0.72rem;color:var(--text2)">↗️${u.correctDiff||0} Diff.</span>
           <span style="font-size:0.72rem;color:var(--text2)">✅${u.correctTend||0} Tend.</span>
-          ${u.bonusPts?`<span style="font-size:0.72rem;color:var(--text2)">❓${u.bonusPts} Bonus</span>`:''}
+          ${u.gameBonusPts?`<span style="font-size:0.72rem;color:var(--text2)">🎯${u.gameBonusPts} Spiel-Boni</span>`:''}
+          ${u.bonusPts?`<span style="font-size:0.72rem;color:var(--text2)">❓${u.bonusPts} Bonusfragen</span>`:''}
         </div>
       </div>
       <span class="rank-pts">${u.points||0} Pts</span>
@@ -1249,6 +1250,252 @@ questions.forEach(q => {
 }
 
 
+function buildRankMapByPoints(rows) {
+  const sorted = [...rows].sort((a, b) => {
+    const diff = (b.pts || 0) - (a.pts || 0);
+    if (diff !== 0) return diff;
+
+    // Stabiler Fallback bei Punktegleichheit:
+    // hat keinen Einfluss auf den Rang, nur auf die interne Reihenfolge.
+    return String(a.uid).localeCompare(String(b.uid));
+  });
+
+  const rankByUid = {};
+  let rank = 1;
+
+  sorted.forEach((row, i) => {
+    if (i > 0 && (row.pts || 0) < (sorted[i - 1].pts || 0)) {
+      rank = i + 1;
+    }
+
+    rankByUid[row.uid] = rank;
+  });
+
+  return rankByUid;
+}
+
+
+window.recalcAllUserStats = async function () {
+  console.log("🔄 Berechne alle User-Statistiken neu...");
+
+  const usersSnap = await getDocs(collection(db, 'users'));
+  const users = [];
+  usersSnap.forEach(d => users.push(d.data()));
+
+  const matchesSnap = await getDocs(query(collection(db, 'matches'), orderBy('utcDate')));
+  const finishedMatches = [];
+  matchesSnap.forEach(d => {
+    const m = d.data();
+    if (m.status === 'FINISHED' && m.score?.fullTime) {
+      finishedMatches.push(m);
+    }
+  });
+
+  for (const u of users) {
+    const tipsSnap = await getDocs(collection(db, 'tips', u.uid, 'matches'));
+    const tipsByMatch = {};
+    let totalTips = 0;
+
+    tipsSnap.forEach(d => {
+      tipsByMatch[d.id] = d.data();
+      totalTips++;
+    });
+
+    let total = 0;
+    let exact = 0;
+    let diff = 0;
+    let tend = 0;
+    let gameBonusTotal = 0;
+
+    for (const m of finishedMatches) {
+      const t = tipsByMatch[m.id];
+      if (!t) continue;
+
+      const pts = calcPts(
+        t.home,
+        t.away,
+        m.score.fullTime.home,
+        m.score.fullTime.away,
+        m.stage
+      );
+
+      const gameBonus = calcGameBonusPts(
+        t.home,
+        t.away,
+        m.score.fullTime.home,
+        m.score.fullTime.away,
+        m.stage
+      );
+
+      total += pts.total || 0;
+      gameBonusTotal += gameBonus || 0;
+
+      if (pts.reason?.includes('Exakt')) {
+        exact++;
+      } else if (pts.reason?.includes('Tordiff')) {
+        diff++;
+      } else if (pts.reason?.includes('Tendenz')) {
+        tend++;
+      }
+    }
+
+    let bonusQuestionTotal = 0;
+    const bonusSnap = await getDocs(collection(db, 'bonusTips', u.uid, 'answers'));
+    bonusSnap.forEach(d => {
+      const b = d.data();
+      if (b.awardedPoints) {
+        bonusQuestionTotal += b.awardedPoints;
+      }
+    });
+
+    total += bonusQuestionTotal;
+
+    await updateDoc(doc(db, 'users', u.uid), {
+      points: total,
+      correctExact: exact,
+      correctDiff: diff,
+      correctTend: tend,
+      gameBonusPts: gameBonusTotal,
+      bonusPts: bonusQuestionTotal,
+      totalTips
+    });
+
+    console.log("✅ Statistik aktualisiert:", u.username, {
+      points: total,
+      exact,
+      diff,
+      tend,
+      gameBonusPts: gameBonusTotal,
+      bonusPts: bonusQuestionTotal
+    });
+  }
+
+  console.log("🎉 Alle User-Statistiken neu berechnet.");
+};
+
+function calcGameBonusPts(tipH, tipA, realH, realA, stage) {
+  const r = window.APP.scoringRules;
+  const isKO = KO_STAGES.includes(stage);
+  const bonusPts = isKO ? r.bonus * 2 : r.bonus;
+
+  tipH = parseInt(tipH);
+  tipA = parseInt(tipA);
+  realH = parseInt(realH);
+  realA = parseInt(realA);
+
+  if ([tipH, tipA, realH, realA].some(isNaN)) {
+    return 0;
+  }
+
+  const exactResult = tipH === realH && tipA === realA;
+  if (exactResult) {
+    return 0;
+  }
+
+  const oneTeamScoreCorrect = tipH === realH || tipA === realA;
+
+  return oneTeamScoreCorrect ? bonusPts : 0;
+}
+
+window.recalcAllUserStats = async function () {
+  console.log("🔄 Berechne alle User-Statistiken neu...");
+
+  const usersSnap = await getDocs(collection(db, 'users'));
+  const users = [];
+  usersSnap.forEach(d => users.push(d.data()));
+
+  const matchesSnap = await getDocs(query(collection(db, 'matches'), orderBy('utcDate')));
+  const finishedMatches = [];
+  matchesSnap.forEach(d => {
+    const m = d.data();
+    if (m.status === 'FINISHED' && m.score?.fullTime) {
+      finishedMatches.push(m);
+    }
+  });
+
+  for (const u of users) {
+    const tipsSnap = await getDocs(collection(db, 'tips', u.uid, 'matches'));
+    const tipsByMatch = {};
+    let totalTips = 0;
+
+    tipsSnap.forEach(d => {
+      tipsByMatch[d.id] = d.data();
+      totalTips++;
+    });
+
+    let total = 0;
+    let exact = 0;
+    let diff = 0;
+    let tend = 0;
+    let gameBonusTotal = 0;
+
+    for (const m of finishedMatches) {
+      const t = tipsByMatch[m.id];
+      if (!t) continue;
+
+      const pts = calcPts(
+        t.home,
+        t.away,
+        m.score.fullTime.home,
+        m.score.fullTime.away,
+        m.stage
+      );
+
+      const gameBonus = calcGameBonusPts(
+        t.home,
+        t.away,
+        m.score.fullTime.home,
+        m.score.fullTime.away,
+        m.stage
+      );
+
+      total += pts.total || 0;
+      gameBonusTotal += gameBonus || 0;
+
+      if (pts.reason?.includes('Exakt')) {
+        exact++;
+      } else if (pts.reason?.includes('Tordiff')) {
+        diff++;
+      } else if (pts.reason?.includes('Tendenz')) {
+        tend++;
+      }
+    }
+
+    let bonusQuestionTotal = 0;
+    const bonusSnap = await getDocs(collection(db, 'bonusTips', u.uid, 'answers'));
+    bonusSnap.forEach(d => {
+      const b = d.data();
+      if (b.awardedPoints) {
+        bonusQuestionTotal += b.awardedPoints;
+      }
+    });
+
+    total += bonusQuestionTotal;
+
+    await updateDoc(doc(db, 'users', u.uid), {
+      points: total,
+      correctExact: exact,
+      correctDiff: diff,
+      correctTend: tend,
+      gameBonusPts: gameBonusTotal,
+      bonusPts: bonusQuestionTotal,
+      totalTips
+    });
+
+    console.log("✅ Statistik aktualisiert:", u.username, {
+      points: total,
+      exact,
+      diff,
+      tend,
+      gameBonusPts: gameBonusTotal,
+      bonusPts: bonusQuestionTotal
+    });
+  }
+
+  console.log("🎉 Alle User-Statistiken neu berechnet.");
+};
+
+
 function calcPts(tipH,tipA,realH,realA,stage){
   const r = window.APP.scoringRules;
 
@@ -1355,10 +1602,10 @@ const locked=Date.now()>=new Date(q.deadline).getTime();if(!locked)return;
       <div class="stats-grid">
         <div class="stat-box"><div class="sv">${u.points||0}</div><div class="sl">Punkte total</div></div>
         <div class="stat-box"><div class="sv">${u.correctExact||0}</div><div class="sl">Exakte Treffer</div></div>
-        <div class="stat-box"><div class="sv">${u.totalTips||0}</div><div class="sl">Tipps abgeg.</div></div>
+        <div class="stat-box"><div class="sv">${u.gameBonusPts||0}</div><div class="sl">Spiel-Bonuspunkte</div></div>
         <div class="stat-box"><div class="sv">${u.correctDiff||0}</div><div class="sl">Tordiff. korrekt</div></div>
         <div class="stat-box"><div class="sv">${u.correctTend||0}</div><div class="sl">Tendenz korrekt</div></div>
-        <div class="stat-box"><div class="sv">${u.bonusPts||0}</div><div class="sl">Bonuspunkte</div></div>
+        <div class="stat-box"><div class="sv">${u.bonusPts||0}</div><div class="sl">Punkte aus Bonusfragen</div></div>
       </div>
       <div class="divider"></div>
 
@@ -1594,42 +1841,39 @@ if (!t) continue;
 
 
 window.appendRankHistoryForMatch = async function (match) {
-
-  console.log("Berechne Rang für neues Spiel:", match.id);
+  console.log("Berechne Rang für neues Spiel:", match?.id);
 
   const usersSnap = await getDocs(collection(db, 'users'));
   const users = [];
   usersSnap.forEach(d => users.push(d.data()));
 
-  // 👉 bestehende Rangverläufe holen
+  // Bestehende Rangverläufe holen
   const stats = {};
   for (const u of users) {
     const snap = await getDoc(doc(db, 'userStats', u.uid));
     stats[u.uid] = snap.exists() ? snap.data().rankHistory || [] : [];
   }
 
-  // 👉 aktuelles Ranking (nach neuem Spiel)
+  // Aktuelles Ranking nach Gesamtpunkten
   const currentRanking = users.map(u => ({
     uid: u.uid,
     pts: u.points || 0
   }));
 
-  currentRanking.sort((a, b) => b.pts - a.pts);
+  // Korrekte Ranglogik mit geteilten Plätzen
+  const rankByUid = buildRankMapByPoints(currentRanking);
 
-  // 👉 neuen Rang anhängen
+  // Neuen Rang anhängen
   for (const user of users) {
-
-    const pos = currentRanking.findIndex(r => r.uid === user.uid) + 1;
-
     const history = stats[user.uid] || [];
-    history.push(pos);
+    history.push(rankByUid[user.uid] || users.length);
 
     await setDoc(doc(db, 'userStats', user.uid), {
       rankHistory: history,
       updatedAt: new Date().toISOString()
     }, { merge: true });
 
-    console.log("✅ updated:", user.username, pos);
+    console.log("✅ updated:", user.username, rankByUid[user.uid]);
   }
 
   console.log("✅ Rangverlauf erweitert!");
@@ -1739,7 +1983,7 @@ showAlert('prof-alert','✅ Änderungen erfolgreich gespeichert','success');
 setTimeout(() => {
   loadProfil();
 }, 1000);
-``
+
 
   }catch(e){showAlert('prof-alert','Fehler: '+e.message);}
 };
@@ -1903,50 +2147,70 @@ await appendRankHistoryForMatch(match);
     }
   }catch(e){showAlert('adm-edit-msg','Fehler: '+e.message);}
 };
+
+
 window.adminClearResult=async mid=>{
   if(!confirm('Resultat zurücksetzen? Punkte werden neu berechnet (0 für dieses Spiel).'))return;
   try{
-    await updateDoc(doc(db,'matches',mid),{status:'SCHEDULED','score.fullTime.home':null,'score.fullTime.away':null,lastUpdated:new Date().toISOString()});
-    const m=window.APP.matchesCache.find(x=>x.id===mid);if(m){m.status='SCHEDULED';m.score=null;}
+    await updateDoc(doc(db,'matches',mid),{
+      status:'SCHEDULED',
+      'score.fullTime.home':null,
+      'score.fullTime.away':null,
+      lastUpdated:new Date().toISOString()
+    });
+
+    const m=window.APP.matchesCache.find(x=>x.id===mid);
+    if(m){m.status='SCHEDULED';m.score=null;}
+
     const uSnap=await getDocs(collection(db,'users'));
-    for(const ud of uSnap.docs){const u=ud.data();const ts=await getDoc(doc(db,'tips',u.uid,'matches',mid));if(ts.exists())await updateDoc(doc(db,'tips',u.uid,'matches',mid),{points:0,reason:'Reset'});}
     for(const ud of uSnap.docs){
       const u=ud.data();
-      const allTs=await getDocs(collection(db,'tips',u.uid,'matches'));
-      let total=0,exact=0,diff=0,tend=0,bonusTotal=0;
-      allTs.forEach(d=>{const t=d.data();if(t.points&&t.reason!=='Reset')total+=t.points;if(t.reason?.includes('Exakt'))exact++;else if(t.reason?.includes('Tordiff'))diff++;else if(t.reason?.includes('Tendenz'))tend++;});
-      const bTs=await getDocs(collection(db,'bonusTips',u.uid,'answers'));
-      bTs.forEach(d=>{const t=d.data();if(t.awardedPoints){total+=t.awardedPoints;bonusTotal+=t.awardedPoints;}});
-      await updateDoc(doc(db,'users',u.uid),{points:total,correctExact:exact,correctDiff:diff,correctTend:tend,bonusPts:bonusTotal});
+      const ts=await getDoc(doc(db,'tips',u.uid,'matches',mid));
+      if(ts.exists()){
+        await updateDoc(doc(db,'tips',u.uid,'matches',mid),{
+          points:0,
+          reason:'Reset',
+          gameBonusPoints:0
+        });
+      }
     }
+
+    await recalcAllUserStats();
+
     showAlert('adm-edit-msg','Resultat zurückgesetzt ✓','success');
     setTimeout(loadAdmin,1800);
   }catch(e){showAlert('adm-edit-msg','Fehler: '+e.message);}
 };
-async function recalcMatch(mid,rH,rA){
-  const uSnap=await getDocs(collection(db,'users'));
-  const batch=writeBatch(db);
-  for(const ud of uSnap.docs){
-    const u=ud.data();const ts=await getDoc(doc(db,'tips',u.uid,'matches',mid));
-    if(!ts.exists())continue;
-    const match = window.APP.matchesCache.find(x => x.id === mid);
-const stage = match?.stage;
 
-const t = ts.data();
-const pts = calcPts(t.home, t.away, rH, rA, stage);
-    batch.update(doc(db,'tips',u.uid,'matches',mid),{points:pts.total,reason:pts.reason});
-  }
-  await batch.commit();
+async function recalcMatch(mid,rH,rA){
+  const uSnap = await getDocs(collection(db,'users'));
+  const batch = writeBatch(db);
+
   for(const ud of uSnap.docs){
-    const u=ud.data();
-    const allTs=await getDocs(collection(db,'tips',u.uid,'matches'));
-    let total=0,exact=0,diff=0,tend=0,bonusTotal=0;
-    allTs.forEach(d=>{const t=d.data();if(t.points)total+=t.points;if(t.reason?.includes('Exakt'))exact++;else if(t.reason?.includes('Tordiff'))diff++;else if(t.reason?.includes('Tendenz'))tend++;});
-    const bTs=await getDocs(collection(db,'bonusTips',u.uid,'answers'));
-    bTs.forEach(d=>{const t=d.data();if(t.awardedPoints){total+=t.awardedPoints;bonusTotal+=t.awardedPoints;}});
-    await updateDoc(doc(db,'users',u.uid),{points:total,correctExact:exact,correctDiff:diff,correctTend:tend,bonusPts:bonusTotal});
+    const u = ud.data();
+    const ts = await getDoc(doc(db,'tips',u.uid,'matches',mid));
+
+    if(!ts.exists()) continue;
+
+    const match = window.APP.matchesCache.find(x => x.id === mid);
+    const stage = match?.stage;
+    const t = ts.data();
+
+    const pts = calcPts(t.home, t.away, rH, rA, stage);
+    const gameBonus = calcGameBonusPts(t.home, t.away, rH, rA, stage);
+
+    batch.update(doc(db,'tips',u.uid,'matches',mid),{
+      points: pts.total,
+      reason: pts.reason,
+      gameBonusPoints: gameBonus
+    });
   }
+
+  await batch.commit();
+
+  await recalcAllUserStats();
 }
+
 window.adminAwardBonus=async qid=>{
   const ans=document.getElementById('bqa-'+qid)?.value;
   if(!ans)return alert('Bitte richtige Antwort wählen.');
@@ -1963,15 +2227,9 @@ window.adminAwardBonus=async qid=>{
       await updateDoc(doc(db,'bonusTips',u.uid,'answers',qid),{awardedPoints:ap,correct});
       if(correct)awarded++;
     }
-    for(const ud of uSnap.docs){
-      const u=ud.data();
-      const allTs=await getDocs(collection(db,'tips',u.uid,'matches'));
-      let total=0,exact=0,diff=0,tend=0,bonusTotal=0;
-      allTs.forEach(d=>{const t=d.data();if(t.points)total+=t.points;if(t.reason?.includes('Exakt'))exact++;else if(t.reason?.includes('Tordiff'))diff++;else if(t.reason?.includes('Tendenz'))tend++;});
-      const bTs=await getDocs(collection(db,'bonusTips',u.uid,'answers'));
-      bTs.forEach(d=>{const t=d.data();if(t.awardedPoints){total+=t.awardedPoints;bonusTotal+=t.awardedPoints;}});
-      await updateDoc(doc(db,'users',u.uid),{points:total,correctExact:exact,correctDiff:diff,correctTend:tend,bonusPts:bonusTotal});
-    }
+    
+    await recalcAllUserStats();
+
     alert(`Bonusfrage ausgewertet. ${awarded} Teilnehmer erhalten ${pts} Punkte.`);
     loadAdmin();
   }catch(e){alert('Fehler: '+e.message);}
@@ -2022,83 +2280,93 @@ if (finalMatch) {
 }
 
 
-window.rebuildAllRankHistories = async function rebuildAllRankHistories() {
-
-  console.log("Starte Rebuild...");
+window.rebuildAllRankHistories = async function () {
+  console.log("🔄 Rebuild aller Rangverläufe gestartet...");
 
   const usersSnap = await getDocs(collection(db, 'users'));
-
   const users = [];
   usersSnap.forEach(d => users.push(d.data()));
 
-  const finished = window.APP.matchesCache.filter(m => m.status === 'FINISHED');
+  const matchesSnap = await getDocs(query(collection(db, 'matches'), orderBy('utcDate')));
+  const finishedMatches = [];
+  matchesSnap.forEach(d => {
+    const m = d.data();
+    if (m.status === 'FINISHED' && m.score?.fullTime) {
+      finishedMatches.push(m);
+    }
+  });
 
-  console.log("Users:", users.length, "Matches:", finished.length);
+  console.log(`👥 User: ${users.length}`);
+  console.log(`✅ Beendete Spiele: ${finishedMatches.length}`);
 
-  // 👉 Alle Tipps einmal laden
+  // Alle Tipps vorladen
   const allTips = {};
 
   for (const u of users) {
-    const snap = await getDocs(collection(db, 'tips', u.uid, 'matches'));
-
     allTips[u.uid] = {};
-    snap.forEach(d => {
+
+    const tipsSnap = await getDocs(collection(db, 'tips', u.uid, 'matches'));
+    tipsSnap.forEach(d => {
       allTips[u.uid][d.id] = d.data();
     });
   }
 
-  // 👉 Für jeden User Rangverlauf berechnen
-  for (const user of users) {
+  // Punktestand und Rangverlauf vorbereiten
+  const pointsByUid = {};
+  const historiesByUid = {};
 
-    const rankData = [];
+  users.forEach(u => {
+    pointsByUid[u.uid] = 0;
+    historiesByUid[u.uid] = [];
+  });
 
-    for (let i = 0; i < finished.length; i++) {
+  // Nach jedem beendeten Spiel den Zwischenrang berechnen
+  for (const match of finishedMatches) {
+    const realH = match.score.fullTime.home;
+    const realA = match.score.fullTime.away;
 
-      const matchesSoFar = finished.slice(0, i + 1);
+    for (const u of users) {
+      const tip = allTips[u.uid]?.[match.id];
 
-      let ranking = [];
+      if (!tip) continue;
 
-      for (const u of users) {
+      const pts = calcPts(
+        tip.home,
+        tip.away,
+        realH,
+        realA,
+        match.stage
+      );
 
-        let ptsSum = 0;
-
-        for (const m of matchesSoFar) {
-
-          const t = allTips[u.uid][m.id];
-          if (!t) continue;
-
-          const pts = calcPts(
-            t.home,
-            t.away,
-            m.score.fullTime.home,
-            m.score.fullTime.away,
-            m.stage
-          );
-
-          ptsSum += pts.total;
-        }
-
-        ranking.push({ uid: u.uid, pts: ptsSum });
-      }
-
-      ranking.sort((a, b) => b.pts - a.pts);
-
-      const pos = ranking.findIndex(r => r.uid === user.uid) + 1;
-
-      rankData.push(pos);
+      pointsByUid[u.uid] += pts.total || 0;
     }
 
-    // 👉 speichern
-    await setDoc(doc(db, 'userStats', user.uid), {
-      rankHistory: rankData,
+    const rankingRows = users.map(u => ({
+      uid: u.uid,
+      pts: pointsByUid[u.uid] || 0
+    }));
+
+    const rankByUid = buildRankMapByPoints(rankingRows);
+
+    for (const u of users) {
+      historiesByUid[u.uid].push(rankByUid[u.uid] || users.length);
+    }
+
+    console.log("📌 Rang nach Spiel gespeichert:", match.id);
+  }
+
+  // Alles speichern
+  for (const u of users) {
+    await setDoc(doc(db, 'userStats', u.uid), {
+      rankHistory: historiesByUid[u.uid],
       updatedAt: new Date().toISOString()
     }, { merge: true });
 
-    console.log("✅ gespeichert für:", user.username);
+    console.log("✅ RankHistory neu gespeichert:", u.username, historiesByUid[u.uid]);
   }
 
-  console.log("🎉 Rebuild fertig!");
-}
+  console.log("🎉 Rebuild aller Rangverläufe abgeschlossen!");
+};
 
 window.adminEditChat=async id=>{
   try{const snap=await getDoc(doc(db,'adminMessages',id));if(!snap.exists())return;const ed=document.getElementById('chat-editor');ed.innerHTML=snap.data().html;window._editingChatId=id;const btn=document.querySelector('[onclick="adminPostChat()"]');if(btn)btn.textContent='💾 Aktualisieren';ed.scrollIntoView({behavior:'smooth'});ed.focus();}catch(e){alert(e.message);}
