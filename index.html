@@ -993,6 +993,42 @@ renderBonusTipps();
   }catch(e){alert('Fehler: '+e.message);}
 };
 
+function getAutoActiveRound(grouped, avail) {
+  const now = Date.now();
+
+  const normalRounds = avail.filter(r => r !== 'Bonusfragen');
+
+  const allMatches = normalRounds
+    .flatMap(r => grouped[r] || [])
+    .sort((a, b) => new Date(a.utcDate).getTime() - new Date(b.utcDate).getTime());
+
+  if (!allMatches.length) {
+    return avail[0];
+  }
+
+  // Spiel gilt noch als "aktuell", wenn es vor weniger als 3 Stunden begonnen hat.
+  // Danach springen wir zur nächsten Partie/Phase.
+  const CURRENT_MATCH_WINDOW = 3 * 60 * 60 * 1000;
+
+  const nextRelevantMatch = allMatches.find(m => {
+    const kickOff = new Date(m.utcDate).getTime();
+    return kickOff + CURRENT_MATCH_WINDOW >= now;
+  });
+
+  if (nextRelevantMatch?.round && normalRounds.includes(nextRelevantMatch.round)) {
+    return nextRelevantMatch.round;
+  }
+
+  // Falls alles vorbei ist: letzte Runde anzeigen
+  const lastMatch = allMatches[allMatches.length - 1];
+
+  if (lastMatch?.round && normalRounds.includes(lastMatch.round)) {
+    return lastMatch.round;
+  }
+
+  return avail[0];
+}
+
 async function loadUebersicht(){
   const el=document.getElementById('uebersicht-content');
   el.innerHTML='<div class="loading-text">Lade...</div>';
@@ -1022,7 +1058,7 @@ const avail = [
   'Bonusfragen'
 ];
 
-const active = avail[0];
+const active = getAutoActiveRound(grouped, avail);
 
 window._uebGrouped = grouped;
 
