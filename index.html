@@ -485,6 +485,26 @@ async function hashPw(pw){const buf=await crypto.subtle.digest('SHA-256',new Tex
 function fmtMEZ(iso){return new Date(iso).toLocaleString('de-CH',{timeZone:'Europe/Zurich',weekday:'short',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});}
 function fmtDay(iso){return new Date(iso).toLocaleDateString('de-CH',{timeZone:'Europe/Zurich',weekday:'short',day:'2-digit',month:'2-digit'});}
 
+function getMatchTime(m){
+  const t = new Date(m.utcDate).getTime();
+  return Number.isFinite(t) ? t : Number.MAX_SAFE_INTEGER;
+}
+
+function compareMatchesByDate(a,b){
+  const diff = getMatchTime(a) - getMatchTime(b);
+  if(diff !== 0) return diff;
+
+  // Fallback, falls zwei Spiele exakt gleiche Anspielzeit haben
+  return String(a.id || '').localeCompare(String(b.id || ''));
+}
+
+function sortGroupedMatches(grouped){
+  Object.values(grouped).forEach(matches => {
+    matches.sort(compareMatchesByDate);
+  });
+  return grouped;
+}
+
 function isLocked(utcDate){
   return Date.now() >= new Date(utcDate).getTime() - 60000;
 }
@@ -786,6 +806,9 @@ async function loadTipps(){
   window.APP.bonusTipsCache={};bs.forEach(d=>{window.APP.bonusTipsCache[d.id]=d.data();});
   const grouped={};
   window.APP.matchesCache.forEach(m=>{const r=m.round||'?';if(!grouped[r])grouped[r]=[];grouped[r].push(m);});
+  
+  sortGroupedMatches(grouped);
+  
   const avail=[...ROUNDS.filter(r=>grouped[r]?.length>0),'Bonusfragen'];
   let active=avail[0];
   for(const r of avail){if(r!=='Bonusfragen'&&grouped[r]?.some(m=>!isLocked(m.utcDate))){active=r;break;}}
@@ -1052,6 +1075,8 @@ allMatches.forEach(m => {
   if(!grouped[r]) grouped[r] = [];
   grouped[r].push(m);
 });
+
+sortGroupedMatches(grouped);
 
 const avail = [
   ...ROUNDS.filter(r => grouped[r]?.length > 0),
@@ -2072,6 +2097,8 @@ async function loadAdmin(){
     let usHtml='';uSnap.forEach(d=>{const u=d.data();usHtml+=`<div class="user-admin-row"><span style="font-size:1.1rem">${u.emoji||'⚽'}</span><span class="uname">${u.username} <span class="badge ${u.isAdmin?'badge-admin':'badge-user'}">${u.isAdmin?'Admin':'User'}</span></span><span style="color:var(--gold);font-size:0.82rem">${u.points||0}Pts</span>${!u.isAdmin?`<button class="btn btn-danger btn-sm" onclick="adminDeleteUser('${u.uid}')">🗑️</button>`:''}</div>`;});
     const allMatchesByRound={};
     window.APP.matchesCache.forEach(m=>{const r=m.round||'?';if(!allMatchesByRound[r])allMatchesByRound[r]=[];allMatchesByRound[r].push(m);});
+
+    sortGroupedMatches(allMatchesByRound);
     let editHtml='';
     ROUNDS.forEach(r=>{
       const ms=allMatchesByRound[r];if(!ms?.length)return;
@@ -2203,6 +2230,7 @@ window.adminSaveMatchFull=async mid=>{
     const m=window.APP.matchesCache.find(x=>x.id===mid);
     if(m){m.homeTeam.name=home;m.awayTeam.name=away;m.utcDate=utcDate;
       if(hasResult){m.status='FINISHED';m.score={fullTime:{home:h,away:a}};}}
+      window.APP.matchesCache.sort(compareMatchesByDate);
     if(hasResult){
       showAlert('adm-edit-msg',`${home} ${h}:${a} ${away} — berechne Punkte...`,'success');
 
