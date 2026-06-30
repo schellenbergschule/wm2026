@@ -855,7 +855,14 @@ function buildMatchCard(m){
   if(finished&&m.score?.fullTime){
     const hg=m.score.fullTime.home??'?',ag=m.score.fullTime.away??'?';
 const pts = tip ? calcPts(tip.home, tip.away, hg, ag, m.stage) : null;
-    let pb='';if(pts!==null){const cl=ptsCls(pts.total);pb=`<span class="pts-badge ${cl}">+${pts.total} Pts${pts.reason?' · '+pts.reason:''}</span>`;}
+
+
+let pb='';
+if(pts!==null){
+  const cl=ptsCls(pts.total, pts.reason);
+  pb=`<span class="pts-badge ${cl}">+${pts.total} Pts${pts.reason?' · '+pts.reason:''}</span>`;
+}
+
     ta=`<div class="result-box"><span style="font-size:0.78rem;color:var(--text2)">Ergebnis:</span><span class="result-score">${hg}:${ag}</span>${pb}</div>${tip?`<div class="mytip">Mein Tipp: <span>${tip.home}:${tip.away}</span></div>`:'<div class="mytip" style="color:var(--danger)">Kein Tipp abgegeben</div>'}`;
   }else if(locked){
     ta=`<div style="text-align:center;color:var(--text2);font-size:0.83rem;padding:7px">${tip?`Mein Tipp: <strong>${tip.home}:${tip.away}</strong>`:'Kein Tipp abgegeben'}</div>`;
@@ -890,7 +897,67 @@ ta = `<div class="tip-row">
     ${ta}
   </div>`;
 }
-function ptsCls(pts){return pts>=5?'p5':pts>=3?'p3':pts>=2?'p2':pts>=1?'p1':'p0';}
+
+function pointEvalKey(reason){
+  reason = reason || '';
+
+  if(reason.includes('Exakt')) return 'exact';
+  if(reason.includes('Tordiff')) return 'diff';
+  if(reason.includes('Tendenz')) return 'tend';
+  if(reason.includes('Bonus')) return 'bonus';
+
+  return 'wrong';
+}
+
+function ptsCls(pts, reason=null){
+  if(reason){
+    const key = pointEvalKey(reason);
+
+    if(key === 'exact') return 'p5';
+    if(key === 'diff') return 'p3';
+    if(key === 'tend') return 'p2';
+    if(key === 'bonus') return 'p1';
+
+    return 'p0';
+  }
+
+  // Fallback für alte Stellen, falls keine reason mitgegeben wird
+  return pts>=5?'p5':pts>=3?'p3':pts>=2?'p2':pts>=1?'p1':'p0';
+}
+
+function pointColorByReason(reason, alpha=0.8){
+  const key = pointEvalKey(reason);
+
+  if(key === 'exact') return `rgba(245,166,35,${alpha})`;   // Gold
+  if(key === 'diff') return `rgba(144,205,244,${alpha})`;   // Blau
+  if(key === 'tend') return `rgba(160,174,192,${alpha})`;   // Grau
+  if(key === 'bonus') return `rgba(118,228,247,${alpha})`;  // Türkis
+
+  return `rgba(252,129,129,${alpha})`;                      // Rot
+}
+
+function pointTextColorByReason(reason){
+  const key = pointEvalKey(reason);
+
+  if(key === 'exact') return '#f5a623';
+  if(key === 'diff') return '#90cdf4';
+  if(key === 'tend') return '#a0aec0';
+  if(key === 'bonus') return '#76e4f7';
+
+  return '#fc8181';
+}
+
+function pointLabelByReason(reason, pts){
+  const key = pointEvalKey(reason);
+
+  if(key === 'exact') return `Perfekt! ⭐ (${pts} Punkte)`;
+  if(key === 'diff') return `Korrekte Tordifferenz ↗️ (${pts} Punkte)`;
+  if(key === 'tend') return `Korrekte Tendenz ✅ (${pts} Punkte)`;
+  if(key === 'bonus') return `Bonuspunkt 🎯 (${pts} Punkte)`;
+
+  return 'Falsch ❌';
+}
+
 function scheduleAutoLock(m){
   if(isLocked(m.utcDate))return;
   const t=new Date(m.utcDate).getTime()-Date.now()-60000;
@@ -1159,12 +1226,7 @@ html+=`<th id="col-${m.id}" style="text-align:center;padding:6px 4px;width:${col
           m.stage
         );
 
-        const col =
-          pts.total >= 5 ? '#f5a623' :
-          pts.total >= 3 ? '#90cdf4' :
-          pts.total >= 2 ? '#a0aec0' :
-          pts.total >= 1 ? '#76e4f7' :
-          '#fc8181';
+const col = pointTextColorByReason(pts.reason);
 
         ptsBit = `<div style="font-size:0.65rem;color:${col};font-weight:700;margin-top:1px">+${pts.total}</div>`;
       }
@@ -1656,6 +1718,7 @@ const chartLabels = [];
 const chartData = [];
 const chartMatches = [];
 const chartTips = [];   // 👉 NEU
+const chartReasons = [];
 
 finished.forEach((m, i) => {
   const t = tips.find(x => x.id === m.id);
@@ -1670,11 +1733,11 @@ finished.forEach((m, i) => {
     m.stage
   );
 
-  chartLabels.push(i + 1);
-  chartData.push(pts.total);
-
-  chartMatches.push(m);   // Spiel
-  chartTips.push(t);      // 👉 Tipp speichern
+chartLabels.push(i + 1);
+chartData.push(pts.total);
+chartMatches.push(m);
+chartTips.push(t);
+chartReasons.push(pts.reason);
 });
 
 
@@ -1684,7 +1747,9 @@ finished.forEach((m, i) => {
       if(!t){histHtml+=`<div class="th-row"><span class="th-match">${flagImg(m.homeTeam.name)} ${m.homeTeam.name} vs ${m.awayTeam.name} ${flagImg(m.awayTeam.name)}</span><span style="color:var(--danger);font-size:0.75rem">Kein Tipp</span></div>`;return;}
       const pts = calcPts(t.home, t.away, m.score.fullTime.home, m.score.fullTime.away, m.stage);
 
-      histHtml+=`<div class="th-row"><span class="th-match">${flagImg(m.homeTeam.name)} ${m.homeTeam.name} vs ${m.awayTeam.name} ${flagImg(m.awayTeam.name)}</span><span style="color:var(--text2)">${t.home}:${t.away}</span><span style="color:var(--green);font-size:0.75rem">${m.score.fullTime.home}:${m.score.fullTime.away}</span><span class="pts-badge ${ptsCls(pts.total)}" style="font-size:0.68rem">+${pts.total}</span></div>`;
+      histHtml+=`<div class="th-row"><span class="th-match">${flagImg(m.homeTeam.name)} ${m.homeTeam.name} vs ${m.awayTeam.name} ${flagImg(m.awayTeam.name)}</span><span style="color:var(--text2)">${t.home}:${t.away}</span><span style="color:var(--green);font-size:0.75rem">${m.score.fullTime.home}:${m.score.fullTime.away}</span>
+      <span class="pts-badge ${ptsCls(pts.total, pts.reason)}" style="font-size:0.68rem">+${pts.total}</span>
+      </div>`;
     });
     const bSnap=await getDocs(collection(db,'bonusTips',uid,'answers'));
     const bqSnap=await getDocs(collection(db,'bonusQuestions'));
@@ -1738,13 +1803,7 @@ setTimeout(() => {
       labels: chartLabels,
         datasets: [{
           data: chartData,
-          backgroundColor: chartData.map(p => 
-            p >= 5 ? 'rgba(245,166,35,0.8)' :   // Gold (perfekt)
-            p >= 3 ? 'rgba(144,205,244,0.8)' : // Blau
-            p >= 2 ? 'rgba(160,174,192,0.8)' : // Grau
-            p >= 1 ? 'rgba(118,228,247,0.8)' : // Türkis
-                     'rgba(252,129,129,0.8)'   // Rot
-          ),
+          backgroundColor: chartReasons.map(reason => pointColorByReason(reason, 0.8)),
           borderRadius: 4
         }]
     },
@@ -1785,10 +1844,8 @@ tooltip: {
       lines.push(`Ergebnis: ${resH}:${resA}`);
 
       // ✅ Bewertung
-      if (p === 5) lines.push("Perfekt! ⭐ (5 Punkte)");
-      else if (p >= 3) lines.push(`Gut 👍 (${p} Punkte)`);
-      else if (p >= 1) lines.push(`Tendenz ✅ (${p} Punkte)`);
-      else lines.push("Falsch ❌");
+const reason = chartReasons[i];
+lines.push(pointLabelByReason(reason, p));
 
       return lines;
     }
