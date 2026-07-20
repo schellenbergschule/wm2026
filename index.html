@@ -171,6 +171,13 @@
   scroll-margin-top: 70px;
 }
 
+
+/* Games und Länder-Hangman */
+.games-grid{display:grid;gap:12px}.game-launch-card{background:linear-gradient(135deg,rgba(45,106,79,.45),rgba(26,71,42,.35));border:1px solid rgba(82,183,136,.55);border-radius:var(--r);padding:18px}.game-launch-card h3{margin-bottom:6px}.game-launch-card p{font-size:.82rem;color:var(--text2);line-height:1.5;margin-bottom:12px}
+#hangman-game{display:none;background:#1a472a;color:#fff;border:1px solid #52b788;border-radius:var(--r);padding:14px;position:relative}#hangman-game.open{display:block}#hangman-game *{box-sizing:border-box}.hg-top{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}.hg-title{font-weight:900}.hg-close,.hg-diff{border:2px solid #52b788;background:transparent;color:#a8d5b5;border-radius:20px;padding:7px 14px;font-weight:700;cursor:pointer}.hg-close{border-radius:7px}.hg-difficulty{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}.hg-diff.active{background:#52b788;color:#fff}.hg-subtitle{text-align:center;color:#a8d5b5;font-size:.76rem;line-height:1.45;margin-bottom:9px}.hg-errors{text-align:center;color:#f8961e;font-size:.82rem;margin-bottom:8px}.hg-field{height:110px;background:#2d6a4f;border:3px solid #52b788;border-radius:8px;position:relative;overflow:hidden;margin-bottom:14px}.hg-midline{position:absolute;inset:0 auto 0 50%;width:2px;background:#ffffff4d}.hg-circle{position:absolute;top:50%;left:50%;width:60px;height:60px;border:2px solid #ffffff4d;border-radius:50%;transform:translate(-50%,-50%)}.hg-goal-l,.hg-goal-r{position:absolute;top:20px;width:18px;height:70px;border:2px solid #fff;background:#ffffff26}.hg-goal-l{left:0;border-left:0}.hg-goal-r{right:0;border-right:0}#hg-player{position:absolute;bottom:8px;transition:right .4s;font-size:2rem}.hg-word{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 7px;min-height:42px;margin-bottom:14px}.hg-letter{display:flex;flex-direction:column;align-items:center}.hg-letter-val{font-size:1.18rem;font-weight:800;min-width:18px;min-height:25px;text-align:center}.hg-letter-line{width:100%;min-width:16px;height:2px;background:#fff}.hg-space{width:11px}.hg-symbol{font-size:1.18rem;font-weight:800}.hg-keyboard{display:flex;flex-wrap:wrap;justify-content:center;gap:5px;margin-bottom:14px}.hg-key{width:34px;height:34px;border:0;border-radius:6px;background:#fff;color:#1a472a;font-weight:800}.hg-key:disabled{background:#555;color:#888;opacity:.5}.hg-stats{display:grid;gap:8px}.hg-stat-label{display:flex;justify-content:space-between;color:#a8d5b5;font-size:.76rem;margin-bottom:4px}.hg-track{height:14px;background:#2d6a4f;border:2px solid #52b788;border-radius:8px;overflow:hidden}.hg-fill{height:100%;transition:width .4s}#hg-points-fill{background:#f8961e}#hg-rate-fill{background:#52b788}#hg-modal{display:none;position:absolute;inset:0;z-index:5;background:#000c;align-items:center;justify-content:center;padding:18px}#hg-modal.show{display:flex}#hg-modal-box{background:#1a472a;border:3px solid #52b788;border-radius:12px;padding:24px;text-align:center;max-width:360px}#hg-modal-sub{color:#a8d5b5;font-size:.85rem;line-height:1.45;margin:8px 0 12px}
+.hg-total-errors{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-radius:8px;background:rgba(248,150,30,.12);border:1px solid rgba(248,150,30,.35);font-size:.8rem;color:#f6c58e}.hg-total-errors strong{color:#fff;font-size:1rem}.hg-diff:disabled{opacity:.5;cursor:not-allowed}.hg-diff.locked.active{background:#52b788;color:#fff;opacity:.75}
+
+.hg-ranking{margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.18)}.hg-ranking-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:3px}.hg-ranking-head h3{font-size:.95rem;color:#fff}.hg-ranking-note{font-size:.72rem;color:#a8d5b5;line-height:1.4;margin-bottom:10px}.hg-refresh{width:32px;height:32px;border-radius:7px;border:1px solid #52b788;background:transparent;color:#a8d5b5;font-size:1rem;cursor:pointer}.hg-rank-wrap{overflow-x:auto;border:1px solid rgba(82,183,136,.45);border-radius:8px}.hg-rank-table{width:100%;border-collapse:collapse;font-size:.72rem;min-width:510px}.hg-rank-table th{padding:7px 6px;color:#a8d5b5;background:#123c25;text-align:left;border-bottom:1px solid rgba(82,183,136,.45);white-space:nowrap}.hg-rank-table td{padding:7px 6px;border-bottom:1px solid rgba(255,255,255,.08);white-space:nowrap}.hg-rank-table tr:last-child td{border-bottom:0}.hg-rank-table .num{text-align:center}.hg-mode{display:inline-block;padding:2px 7px;border-radius:12px;font-size:.66rem;font-weight:800}.hg-mode.easy{background:rgba(82,183,136,.2);color:#8ee0ad}.hg-mode.hard{background:rgba(248,150,30,.18);color:#f8b45b}.hg-ranking-empty{text-align:center;color:#a8d5b5;padding:18px;font-size:.8rem}.hg-ranking-error{color:#fc8181;padding:12px;font-size:.78rem}
 </style>
 
 <link rel="manifest" href="manifest.json">
@@ -247,6 +254,11 @@
     <div id="rangliste-content"><div class="loading-text">Lade...</div></div>
   </div>
 
+  <div id="page-games" class="page">
+    <div class="section-title">🎮 Games</div>
+    <div id="games-hub" class="games-grid"><div class="game-launch-card"><h3>⚽ Länder-Hangman</h3><p>Errate die Namen der 48 WM-Teilnehmer. Wähle zwischen leicht und schwer und sammle 10 Punkte.</p><button class="btn btn-green btn-full" onclick="openHangmanGame()">Spiel starten</button></div></div>
+    <div id="hangman-game"><div class="hg-top"><div class="hg-title">FUSSBALL LÄNDER-HANGMAN</div><button class="hg-close" onclick="closeHangmanGame()">← Games</button></div><div class="hg-difficulty"><button id="hg-easy" class="hg-diff active" onclick="setHangmanDifficulty('easy')">⚽ LEICHT</button><button id="hg-hard" class="hg-diff" onclick="setHangmanDifficulty('hard')">🔥 SCHWER</button></div><div class="hg-subtitle" id="hg-subtitle"></div><div class="hg-errors" id="hg-errors"></div><div class="hg-field" id="hg-field"><div class="hg-midline"></div><div class="hg-circle"></div><div class="hg-goal-l"></div><div class="hg-goal-r"></div><div id="hg-player">⚽🏃</div></div><div class="hg-word" id="hg-word"></div><div class="hg-keyboard" id="hg-keyboard"></div><div class="hg-stats"><div><div class="hg-stat-label"><span>⭐ Punkte (max. 10)</span><strong id="hg-points-val">0 / 10</strong></div><div class="hg-track"><div class="hg-fill" id="hg-points-fill"></div></div></div><div><div class="hg-stat-label"><span>🎯 Trefferquote</span><strong id="hg-rate-val">–</strong></div><div class="hg-track"><div class="hg-fill" id="hg-rate-fill"></div></div></div><div class="hg-total-errors"><span>❌ Fehlversuche total</span><strong id="hg-total-errors-val">0</strong></div></div><div class="hg-ranking"><div class="hg-ranking-head"><h3>🏆 Hangman-Rangliste</h3><button class="hg-refresh" onclick="loadHangmanRanking()">↻</button></div><p class="hg-ranking-note">Pro Spieler wird der beste leichte und der beste schwere Versuch angezeigt.</p><div id="hg-ranking-content"><div class="loading-text">Lade Rangliste...</div></div></div><div id="hg-modal"><div id="hg-modal-box"><h2 id="hg-modal-title"></h2><div id="hg-modal-sub"></div><button class="btn btn-green" id="hg-modal-btn" onclick="handleHangmanModal()">Neues Land</button></div></div></div>
+  </div>
   <div id="page-profil" class="page">
     <div id="profil-top"></div>
     <div class="section-title">👤 Mein Profil</div>
@@ -264,6 +276,7 @@
   <div class="nav-item" onclick="showPage('tipps')" id="nav-tipps"><span class="icon">⚽</span><span>Tipps</span></div>
   <div class="nav-item" onclick="showPage('uebersicht')" id="nav-uebersicht"><span class="icon">📊</span><span>Übersicht</span></div>
   <div class="nav-item" onclick="showPage('rangliste')" id="nav-rangliste"><span class="icon">🏆</span><span>Rangliste</span></div>
+  <div class="nav-item" onclick="showPage('games')" id="nav-games"><span class="icon">🎮</span><span>Games</span></div>
   <div class="nav-item" onclick="showPage('profil')" id="nav-profil"><span class="icon">👤</span><span>Profil</span></div>
   <div class="nav-item hidden" onclick="showPage('admin')" id="nav-admin"><span class="icon">🔧</span><span>Admin</span></div>
 </nav>
@@ -648,6 +661,8 @@ if(name==='rangliste'){
   }, 50);
 }
 
+if(name==='games')loadGames();
+
 if(name==='profil'){
   loadProfil();
 
@@ -1018,12 +1033,15 @@ async function renderBonusTipps(){
       const myAns=window.APP.bonusTipsCache?.[d.id]?.answer||'';
       const dl=new Date(q.deadline).toLocaleString('de-CH',{timeZone:'Europe/Zurich',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
       const opts=(q.type==='round'?ABSCHNEIDEN:WM_TEAMS).map(o=>`<option value="${o}"${myAns===o?' selected':''}>${o}</option>`).join('');
-      const correctAns=q.correctAnswer;
+      const correctAnswers = Array.isArray(q.correctAnswers)
+        ? q.correctAnswers
+        : (q.correctAnswer ? [q.correctAnswer] : []);
+      const correctAnsText = correctAnswers.join(', ');
       let result='';
-      if(correctAns){
-        if(myAns===correctAns)result=`<div class="alert alert-success" style="margin-top:8px">✓ Korrekt! +${q.points||15} Punkte</div>`;
-        else if(myAns)result=`<div class="alert alert-error" style="margin-top:8px">✗ Falsch. Richtig: <strong>${correctAns}</strong></div>`;
-        else result=`<div class="alert alert-error" style="margin-top:8px">Kein Tipp abgegeben. Richtig: <strong>${correctAns}</strong></div>`;
+      if(correctAnswers.length){
+        if(correctAnswers.includes(myAns))result=`<div class="alert alert-success" style="margin-top:8px">✓ Korrekt! +${q.points||15} Punkte</div>`;
+        else if(myAns)result=`<div class="alert alert-error" style="margin-top:8px">✗ Falsch. Richtig: <strong>${correctAnsText}</strong></div>`;
+        else result=`<div class="alert alert-error" style="margin-top:8px">Kein Tipp abgegeben. Richtig: <strong>${correctAnsText}</strong></div>`;
       }
       html+=`<div class="bonus-card">
         <h3>${q.question}</h3>
@@ -1035,7 +1053,7 @@ async function renderBonusTipps(){
 
 ${!locked?`<button class="tip-btn ${myAns?'saved':''}" id="bq-${d.id}" onclick="saveBonusTip('${d.id}')">${myAns?'✓ Gespeichert':'Tippen'}</button>`:''}
 
-        ${myAns&&!correctAns?`<div class="mytip" style="margin-top:6px">Meine Antwort: <span>${myAns}</span></div>`:''}
+        ${myAns&&!correctAnswers.length?`<div class="mytip" style="margin-top:6px">Meine Antwort: <span>${myAns}</span></div>`:''}
         ${result}
       </div>`;
     });
@@ -1326,8 +1344,11 @@ async function renderBonusUebersicht(){
 
     questions.forEach(q => {
       const locked = Date.now() >= new Date(q.deadline).getTime();
-      const status = q.correctAnswer
-        ? `<div style="color:var(--green);font-weight:900;font-size:0.75rem">✓ ${q.correctAnswer}</div>`
+      const correctAnswers = Array.isArray(q.correctAnswers)
+        ? q.correctAnswers
+        : (q.correctAnswer ? [q.correctAnswer] : []);
+      const status = correctAnswers.length
+        ? `<div style="color:var(--green);font-weight:900;font-size:0.75rem">✓ ${correctAnswers.join(', ')}</div>`
         : locked
           ? `<div style="color:var(--gold);font-size:0.75rem">gesperrt</div>`
           : `<div style="color:var(--text2);font-size:0.75rem">offen</div>`;
@@ -1364,8 +1385,11 @@ questions.forEach(q => {
       cell = `<span style="font-weight:700">${ans}</span>`;
 
       // Punkte nur anzeigen, wenn die Frage ausgewertet wurde
-      if(q.correctAnswer) {
-        const pts = ans === q.correctAnswer ? (q.points || 15) : 0;
+      const correctAnswers = Array.isArray(q.correctAnswers)
+        ? q.correctAnswers
+        : (q.correctAnswer ? [q.correctAnswer] : []);
+      if(correctAnswers.length) {
+        const pts = correctAnswers.includes(ans) ? (q.points || 15) : 0;
         const col = pts > 0 ? '#f5a623' : '#fc8181';
 
         ptsBit = `<div style="font-size:0.65rem;color:${col};font-weight:700;margin-top:1px">${pts > 0 ? '+' + pts : '✗'}</div>`;
@@ -1380,7 +1404,10 @@ questions.forEach(q => {
       // Keine Antwort und Deadline vorbei
       cell = `<span style="color:var(--text2)">–</span>`;
 
-      if(q.correctAnswer) {
+      const correctAnswers = Array.isArray(q.correctAnswers)
+        ? q.correctAnswers
+        : (q.correctAnswer ? [q.correctAnswer] : []);
+      if(correctAnswers.length) {
         ptsBit = `<div style="font-size:0.65rem;color:var(--danger);font-weight:700;margin-top:1px">✗</div>`;
       }
     } else {
@@ -1759,7 +1786,11 @@ chartReasons.push(pts.reason);
 
 const locked=Date.now()>=new Date(q.deadline).getTime();if(!locked)return;
       const ans=bSnap.docs.find(x=>x.id===d.id)?.data()?.answer;
-      bonusHtml+=`<div class="th-row"><span class="th-match">${q.question}</span><span style="color:var(--gold);font-size:0.78rem">${ans||'Kein Tipp'}</span>${q.correctAnswer?`<span class="pts-badge ${ans===q.correctAnswer?'p5':'p0'}" style="font-size:0.68rem">${ans===q.correctAnswer?'+'+q.points:'✗'}</span>`:''}</div>`;
+      const correctAnswers = Array.isArray(q.correctAnswers)
+        ? q.correctAnswers
+        : (q.correctAnswer ? [q.correctAnswer] : []);
+      const isCorrect = correctAnswers.includes(ans);
+      bonusHtml+=`<div class="th-row"><span class="th-match">${q.question}</span><span style="color:var(--gold);font-size:0.78rem">${ans||'Kein Tipp'}</span>${correctAnswers.length?`<span class="pts-badge ${isCorrect?'p5':'p0'}" style="font-size:0.68rem">${isCorrect?'+'+q.points:'✗'}</span>`:''}</div>`;
     });
     const isMe=uid===window.APP.user?.uid;
     document.getElementById('modal-content').innerHTML=`
@@ -2187,19 +2218,42 @@ async function loadAdmin(){
     let bqHtml='';
     bSnap.forEach(d=>{
       const q=d.data();
-      const opts=(q.type==='round'?ABSCHNEIDEN:WM_TEAMS).map(o=>`<option value="${o}"${q.correctAnswer===o?' selected':''}>${o}</option>`).join('');
+      const optionsList = q.type === 'round' ? ABSCHNEIDEN : WM_TEAMS;
+      const savedCorrectAnswers = Array.isArray(q.correctAnswers)
+        ? q.correctAnswers
+        : (q.correctAnswer ? [q.correctAnswer] : []);
+      const answerMode = q.answerMode || 'single';
+      let answerSelector = '';
+
+      if(answerMode === 'multi'){
+        answerSelector = `
+          <div style="width:100%;max-height:220px;overflow-y:auto;border:1px solid var(--cb);border-radius:8px;padding:8px;background:#1a1f4e">
+            ${optionsList.map(o=>`
+              <label style="display:flex;align-items:center;gap:8px;padding:5px 3px;font-size:0.8rem;cursor:pointer">
+                <input type="checkbox" class="bqmulti-${d.id}" value="${o}"${savedCorrectAnswers.includes(o)?' checked':''}>
+                <span>${o}</span>
+              </label>
+            `).join('')}
+          </div>`;
+      }else{
+        answerSelector = `
+          <select style="flex:1;padding:7px;background:#1a1f4e;border:1px solid var(--gold);border-radius:8px;color:#fff;font-size:0.83rem;outline:none" id="bqa-${d.id}">
+            <option value="">-- Richtige Antwort --</option>
+            ${optionsList.map(o=>`<option value="${o}"${savedCorrectAnswers.includes(o)?' selected':''}>${o}</option>`).join('')}
+          </select>`;
+      }
+
       bqHtml+=`<div style="padding:10px;background:rgba(255,255,255,0.04);border-radius:8px;margin-bottom:8px">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
           <span style="flex:1;font-size:0.85rem;font-weight:700">${q.question}</span>
+          <span class="badge badge-user">${answerMode==='multi'?'Mehrfachlösung':'Einzellösung'}</span>
           <button class="btn btn-danger btn-sm" onclick="adminDeleteBonus('${d.id}')">🗑️</button>
         </div>
-        <div style="display:flex;gap:8px;align-items:center">
-          <select style="flex:1;padding:7px;background:#1a1f4e;border:1px solid var(--gold);border-radius:8px;color:#fff;font-size:0.83rem;outline:none" id="bqa-${d.id}">
-            <option value="">-- Richtige Antwort --</option>${opts}
-          </select>
+        <div style="display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap">
+          ${answerSelector}
           <button class="btn btn-green btn-sm" onclick="adminAwardBonus('${d.id}')">✓ Auswerten</button>
         </div>
-        ${q.correctAnswer?`<div style="font-size:0.75rem;color:var(--green);margin-top:4px">Ausgewertet: ${q.correctAnswer}</div>`:''}
+        ${savedCorrectAnswers.length?`<div style="font-size:0.75rem;color:var(--green);margin-top:6px">Ausgewertet: ${savedCorrectAnswers.join(', ')}</div>`:''}
       </div>`;
     });
     el.innerHTML=`
@@ -2239,6 +2293,7 @@ async function loadAdmin(){
         <div class="card mt-8"><h2>+ Bonusfrage hinzufügen</h2>
           <div class="fg"><label>Frage</label><input type="text" id="bq-q" placeholder="Frage..."></div>
           <div class="fg"><label>Antworttyp</label><select id="bq-type"><option value="team">Land (48 Teams)</option><option value="round">Runde (GP bis Weltmeister)</option></select></div>
+          <div class="fg"><label>Lösungsmodus</label><select id="bq-answermode"><option value="single">Eine richtige Antwort</option><option value="multi">Mehrere richtige Antworten möglich</option></select></div>
           <div class="fg"><label>Deadline (MEZ)</label><input type="datetime-local" id="bq-dl"></div>
           <div id="bq-alert"></div>
           <button class="btn btn-primary btn-full" onclick="adminAddBonus()">Hinzufügen</button>
@@ -2372,24 +2427,44 @@ async function recalcMatch(mid,rH,rA){
 }
 
 window.adminAwardBonus=async qid=>{
-  const ans=document.getElementById('bqa-'+qid)?.value;
-  if(!ans)return alert('Bitte richtige Antwort wählen.');
   try{
-    await updateDoc(doc(db,'bonusQuestions',qid),{correctAnswer:ans});
+    const qRef=doc(db,'bonusQuestions',qid);
+    const qSnap=await getDoc(qRef);
+    if(!qSnap.exists())return alert('Bonusfrage wurde nicht gefunden.');
+    const q=qSnap.data();
+    const answerMode=q.answerMode||'single';
+    let correctAnswers=[];
+
+    if(answerMode==='multi'){
+      document.querySelectorAll(`.bqmulti-${qid}:checked`).forEach(cb=>correctAnswers.push(cb.value));
+      if(!correctAnswers.length)return alert('Mindestens eine richtige Antwort auswählen.');
+    }else{
+      const ans=document.getElementById('bqa-'+qid)?.value;
+      if(!ans)return alert('Bitte richtige Antwort wählen.');
+      correctAnswers=[ans];
+    }
+
+    await updateDoc(qRef,{
+      correctAnswers,
+      correctAnswer:correctAnswers[0]
+    });
+
     const uSnap=await getDocs(collection(db,'users'));
-    const qSnap=await getDoc(doc(db,'bonusQuestions',qid));
-    const pts=qSnap.data()?.points||15;let awarded=0;
+    const pts=q.points||15;
+    let awarded=0;
     for(const ud of uSnap.docs){
       const u=ud.data();
-      const tipSnap=await getDoc(doc(db,'bonusTips',u.uid,'answers',qid));
+      const tipRef=doc(db,'bonusTips',u.uid,'answers',qid);
+      const tipSnap=await getDoc(tipRef);
       if(!tipSnap.exists())continue;
-      const tipAns=tipSnap.data().answer,correct=tipAns===ans,ap=correct?pts:0;
-      await updateDoc(doc(db,'bonusTips',u.uid,'answers',qid),{awardedPoints:ap,correct});
+      const tipAns=tipSnap.data().answer;
+      const correct=correctAnswers.includes(tipAns);
+      const ap=correct?pts:0;
+      await updateDoc(tipRef,{awardedPoints:ap,correct});
       if(correct)awarded++;
     }
-    
-    await recalcAllUserStats();
 
+    await recalcAllUserStats();
     alert(`Bonusfrage ausgewertet. ${awarded} Teilnehmer erhalten ${pts} Punkte.`);
     loadAdmin();
   }catch(e){alert('Fehler: '+e.message);}
@@ -2533,10 +2608,105 @@ window.adminEditChat=async id=>{
 };
 window.adminDeleteChat=async id=>{if(!confirm('Nachricht löschen?'))return;try{await deleteDoc(doc(db,'adminMessages',id));loadAdminChatList();loadAdminChat();}catch(e){alert(e.message);}};
 window.adminDeleteUser=async uid=>{if(!confirm('Benutzer löschen?'))return;try{await deleteDoc(doc(db,'users',uid));loadAdmin();}catch(e){alert(e.message);}};
-window.adminAddBonus=async()=>{const q=document.getElementById('bq-q').value.trim(),dl=document.getElementById('bq-dl').value,type=document.getElementById('bq-type').value;if(!q||!dl)return showAlert('bq-alert','Frage und Deadline ausfüllen.');try{await setDoc(doc(db,'bonusQuestions','bq_'+Date.now()),{question:q,deadline:new Date(dl).toISOString(),points:15,type});showAlert('bq-alert','Gespeichert ✓','success');loadAdmin();}catch(e){showAlert('bq-alert','Fehler: '+e.message);}};
+window.adminAddBonus=async()=>{const q=document.getElementById('bq-q').value.trim(),dl=document.getElementById('bq-dl').value,type=document.getElementById('bq-type').value,answerMode=document.getElementById('bq-answermode').value;if(!q||!dl)return showAlert('bq-alert','Frage und Deadline ausfüllen.');try{await setDoc(doc(db,'bonusQuestions','bq_'+Date.now()),{question:q,deadline:new Date(dl).toISOString(),points:15,type,answerMode});showAlert('bq-alert','Gespeichert ✓','success');loadAdmin();}catch(e){showAlert('bq-alert','Fehler: '+e.message);}};
 window.adminDeleteBonus=async id=>{if(!confirm('Löschen?'))return;try{await deleteDoc(doc(db,'bonusQuestions',id));loadAdmin();}catch(e){alert(e.message);}};
 window.adminSaveRules=async()=>{const r={exact:parseInt(document.getElementById('pe').value)||5,diff:parseInt(document.getElementById('pd').value)||3,tend:parseInt(document.getElementById('pt').value)||2,bonus:parseInt(document.getElementById('pb').value)||1,bq:parseInt(document.getElementById('pbq').value)||15};try{await setDoc(doc(db,'config','scoring'),r);window.APP.scoringRules=r;showAlert('pts-alert','Gespeichert ✓','success');}catch(e){showAlert('pts-alert','Fehler: '+e.message);}};
 window.adminReseed=async()=>{const msg=document.getElementById('adm-seed-msg');msg.innerHTML='<p class="text-muted">Schreibe Spielplan...</p>';try{await seedMatches();msg.innerHTML='<div class="alert alert-success">Spielplan aktualisiert ✓</div>';}catch(e){msg.innerHTML=`<div class="alert alert-error">Fehler: ${e.message}</div>`;}};
+
+
+// Games: Länder-Hangman
+const HG_MAX=10;let hgCountry='',hgGuessed=new Set(),hgErrors=0,hgOver=false,hgList=[],hgIndex=0,hgTotal=0,hgWins=0,hgPoints=0,hgTotalErrors=0,hgMaxErrors=8,hgDifficulty='easy',hgDifficultyLocked=false,hgChampion=false,hgReady=false;
+function loadGames(){closeHangmanGame();window.scrollTo({top:0,behavior:'smooth'});}
+window.openHangmanGame=()=>{document.getElementById('games-hub').style.display='none';document.getElementById('hangman-game').classList.add('open');loadHangmanRanking();if(!hgReady){hgReady=true;hgShuffle();setHangmanDifficulty('easy');hgStart();}else setTimeout(hgMove,0);};
+window.closeHangmanGame=()=>{const h=document.getElementById('games-hub'),g=document.getElementById('hangman-game');if(h)h.style.display='grid';if(g)g.classList.remove('open');};
+function hgShuffle(){hgList=[...WM_TEAMS].map(x=>x.toUpperCase()).sort(()=>Math.random()-.5);hgIndex=0;}function hgNext(){if(hgIndex>=hgList.length)hgShuffle();return hgList[hgIndex++];}
+function hgNorm(c){const u=c.toUpperCase();if(u==='Ä'||u==='Ö'||u==='Ü')return u;return u.normalize('NFD').replace(/[\u0300-\u036f]/g,'');}function hgLetter(c){return /^[A-ZÄÖÜÇ]$/i.test(c);}function hgShown(c){return !hgLetter(c)||hgGuessed.has(hgNorm(c));}function hgHas(k){return [...hgCountry].some(c=>hgLetter(c)&&hgNorm(c)===k);}function hgSolved(){return [...hgCountry].every(hgShown);}
+window.setHangmanDifficulty=m=>{if(hgDifficultyLocked)return;hgDifficulty=m;hgMaxErrors=m==='hard'?5:8;document.getElementById('hg-easy')?.classList.toggle('active',m==='easy');document.getElementById('hg-hard')?.classList.toggle('active',m==='hard');const pts=m==='hard'?2:1,tries=m==='hard'?5:8;document.getElementById('hg-subtitle').textContent=`Rate den Namen des WM-Landes. ${tries} Fehlversuche erlaubt. Ein korrekt erratenes Land gibt ${pts} ${pts===1?'Punkt':'Punkte'}. Ziel: 10 Punkte. Der Modus wird mit dem ersten Buchstaben festgelegt.`;document.getElementById('hg-errors').textContent=`Fehlversuche: ${hgErrors} / ${hgMaxErrors}`;hgMove();};
+function hgLockDifficulty(){hgDifficultyLocked=true;['hg-easy','hg-hard'].forEach(id=>{const b=document.getElementById(id);if(b){b.disabled=true;b.classList.add('locked');}});}
+function hgUnlockDifficulty(){hgDifficultyLocked=false;['hg-easy','hg-hard'].forEach(id=>{const b=document.getElementById(id);if(b){b.disabled=false;b.classList.remove('locked');}});}
+function hgStart(){hgCountry=hgNext();hgGuessed=new Set();hgErrors=0;hgOver=false;hgChampion=false;document.getElementById('hg-modal').classList.remove('show');document.getElementById('hg-errors').textContent=`Fehlversuche: 0 / ${hgMaxErrors}`;hgRenderWord();hgKeys();setTimeout(hgMove,0);}
+function hgRenderWord(force=false){const e=document.getElementById('hg-word');e.innerHTML='';for(const c of hgCountry){if(c===' '){const x=document.createElement('div');x.className='hg-space';e.appendChild(x);}else if(!hgLetter(c)){const x=document.createElement('div');x.className='hg-symbol';x.textContent=c;e.appendChild(x);}else{const b=document.createElement('div'),v=document.createElement('div'),l=document.createElement('div');b.className='hg-letter';v.className='hg-letter-val';l.className='hg-letter-line';v.textContent=force||hgShown(c)?c:'';b.append(v,l);e.appendChild(b);}}}
+function hgKeys(){const e=document.getElementById('hg-keyboard');e.innerHTML='';const keys=[...'ABCDEFGHIJKLMNOPQRSTUVWXYZ','Ä','Ö','Ü'];for(const k of keys){const b=document.createElement('button');b.className='hg-key';b.textContent=k;b.disabled=hgGuessed.has(k);b.onclick=()=>hgGuess(k);e.appendChild(b);}}
+function hgGuess(k){if(hgOver||hgGuessed.has(k))return;if(!hgDifficultyLocked)hgLockDifficulty();hgGuessed.add(k);hgKeys();if(!hgHas(k)){hgErrors++;hgTotalErrors++;document.getElementById('hg-total-errors-val').textContent=hgTotalErrors;document.getElementById('hg-errors').textContent=`Fehlversuche: ${hgErrors} / ${hgMaxErrors}`;hgMove();if(hgErrors>=hgMaxErrors){hgOver=true;hgRenderWord(true);setTimeout(()=>hgModal(false),450);return;}}hgRenderWord();if(hgSolved()){hgOver=true;setTimeout(()=>hgModal(true),350);}}
+function hgMove(){const f=document.getElementById('hg-field'),p=document.getElementById('hg-player');if(!f||!p||!f.offsetWidth)return;const a=28,z=Math.max(a,f.offsetWidth-78);p.style.right=(a+hgErrors/hgMaxErrors*(z-a))+'px';}
+function hgStats(){const r=hgTotal?Math.round(hgWins/hgTotal*100):0;document.getElementById('hg-rate-val').textContent=hgTotal?`${hgWins} von ${hgTotal} (${r}%)`:'–';document.getElementById('hg-rate-fill').style.width=r+'%';document.getElementById('hg-points-val').textContent=`${hgPoints} / ${HG_MAX}`;document.getElementById('hg-points-fill').style.width=Math.min(hgPoints/HG_MAX*100,100)+'%';document.getElementById('hg-total-errors-val').textContent=hgTotalErrors;}
+
+function hgScoreDocId(uid,mode){return `${uid}_${mode}`;}
+function hgDateValue(value){
+  if(!value)return null;
+  if(typeof value.toDate==='function')return value.toDate();
+  const d=new Date(value);
+  return Number.isNaN(d.getTime())?null:d;
+}
+function hgFormatDate(value){
+  const d=hgDateValue(value);
+  if(!d)return '–';
+  return d.toLocaleString('de-CH',{timeZone:'Europe/Zurich',day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+}
+async function hgSaveBestScore(){
+  const user=window.APP.user;
+  if(!user)return;
+  const hitRate=hgTotal>0?Math.round(hgWins/hgTotal*100):0;
+  const scoreRef=doc(db,'hangmanScores',hgScoreDocId(user.uid,hgDifficulty));
+  try{
+    const oldSnap=await getDoc(scoreRef);
+    const old=oldSnap.exists()?oldSnap.data():null;
+    const isBetter=!old||hgTotalErrors<(old.errors??Number.MAX_SAFE_INTEGER)||(hgTotalErrors===(old.errors??Number.MAX_SAFE_INTEGER)&&hitRate>(old.hitRate??0));
+    if(isBetter){
+      await setDoc(scoreRef,{
+        uid:user.uid,
+        username:user.username,
+        emoji:user.emoji||'⚽',
+        mode:hgDifficulty,
+        errors:hgTotalErrors,
+        hitRate,
+        wins:hgWins,
+        rounds:hgTotal,
+        completedAt:serverTimestamp()
+      });
+    }
+    await loadHangmanRanking();
+    return isBetter;
+  }catch(e){
+    console.error('Hangman-Bestwert konnte nicht gespeichert werden:',e);
+    const el=document.getElementById('hg-ranking-content');
+    if(el)el.innerHTML=`<div class="hg-ranking-error">Rangliste nicht verfügbar: ${e.message}</div>`;
+    return false;
+  }
+}
+window.loadHangmanRanking=async()=>{
+  const el=document.getElementById('hg-ranking-content');
+  if(!el)return;
+  el.innerHTML='<div class="loading-text" style="padding:16px">Lade Rangliste...</div>';
+  try{
+    const snap=await getDocs(collection(db,'hangmanScores'));
+    const rows=[];
+    snap.forEach(d=>rows.push({id:d.id,...d.data()}));
+    rows.sort((a,b)=>{
+      const err=(a.errors??Number.MAX_SAFE_INTEGER)-(b.errors??Number.MAX_SAFE_INTEGER);
+      if(err!==0)return err;
+      const rate=(b.hitRate??0)-(a.hitRate??0);
+      if(rate!==0)return rate;
+      const ad=hgDateValue(a.completedAt)?.getTime()??Number.MAX_SAFE_INTEGER;
+      const bd=hgDateValue(b.completedAt)?.getTime()??Number.MAX_SAFE_INTEGER;
+      return ad-bd;
+    });
+    if(!rows.length){el.innerHTML='<div class="hg-ranking-empty">Noch keine abgeschlossenen Spiele.</div>';return;}
+    let html='<div class="hg-rank-wrap"><table class="hg-rank-table"><thead><tr><th class="num">#</th><th>Spieler</th><th>Modus</th><th class="num">Fehler</th><th class="num">Trefferquote</th><th>Geschafft am</th></tr></thead><tbody>';
+    rows.forEach((r,i)=>{
+      const mode=r.mode==='hard'?'Schwer':'Leicht';
+      html+=`<tr><td class="num">${i+1}.</td><td>${r.emoji||'⚽'} ${r.username||r.uid||'Unbekannt'}</td><td><span class="hg-mode ${r.mode==='hard'?'hard':'easy'}">${mode}</span></td><td class="num"><strong>${r.errors??0}</strong></td><td class="num">${r.hitRate??0}%</td><td>${hgFormatDate(r.completedAt)}</td></tr>`;
+    });
+    html+='</tbody></table></div>';
+    el.innerHTML=html;
+  }catch(e){
+    console.error('Hangman-Rangliste konnte nicht geladen werden:',e);
+    el.innerHTML=`<div class="hg-ranking-error">Rangliste nicht verfügbar: ${e.message}</div>`;
+  }
+};
+async function hgModal(won){hgTotal++;if(won){hgWins++;hgPoints+=hgDifficulty==='hard'?2:1;}hgStats();hgRenderWord(true);const t=document.getElementById('hg-modal-title'),u=document.getElementById('hg-modal-sub'),b=document.getElementById('hg-modal-btn');if(hgPoints>=HG_MAX){hgChampion=true;t.textContent='🏆 BRAVO!';t.style.color='#f8961e';u.textContent='Du kennst die WM-Länder ausgezeichnet. Dein Bestwert wird gespeichert.';b.textContent='Neu starten';const isBest=await hgSaveBestScore();u.textContent=isBest?'Neuer persönlicher Bestwert gespeichert!':'Spiel geschafft. Dein bisheriger Bestwert bleibt bestehen.';}else if(won){const p=hgDifficulty==='hard'?2:1;t.textContent='⚽ TOR FÜR DICH!';t.style.color='#52b788';u.textContent=`Richtig! +${p} ${p===1?'Punkt':'Punkte'}. Das Land war: ${hgCountry}`;b.textContent='Neues Land';}else{t.textContent='😢 TOR FÜR DEN GEGNER!';t.style.color='#f4a261';u.textContent=`Das gesuchte Land war: ${hgCountry}`;b.textContent='Neues Land';}document.getElementById('hg-modal').classList.add('show');}
+window.handleHangmanModal=()=>{if(hgChampion){hgTotal=0;hgWins=0;hgPoints=0;hgTotalErrors=0;hgUnlockDifficulty();hgStats();}hgStart();};window.addEventListener('resize',()=>{if(document.getElementById('hangman-game')?.classList.contains('open'))hgMove();});
+// Ende Länder-Hangman
 
 buildEmojiGrid('reg-emoji-grid','reg-emoji','⚽',null);
 (async()=>{
