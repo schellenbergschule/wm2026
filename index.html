@@ -184,6 +184,32 @@
 
 /* WM-Spieler-Memory */
 .mem-launch{background:linear-gradient(135deg,rgba(66,153,225,.17),rgba(90,55,150,.18));border-color:rgba(144,205,244,.5)}#memory-game{display:none;background:linear-gradient(180deg,#111936,#0a1028);border:1px solid rgba(144,205,244,.55);border-radius:var(--r);padding:14px}#memory-game.open{display:block}.mem-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}.mem-title{font-weight:900;color:#90cdf4}.mem-small{font-size:.7rem;color:var(--text2);margin-top:2px}.mem-close{border:1px solid #90cdf4;background:transparent;color:#90cdf4;border-radius:7px;padding:7px 10px;font-weight:700}.mem-intro{font-size:.82rem;color:var(--text2);line-height:1.5;margin-bottom:14px}.mem-mode-grid{display:grid;gap:8px;margin-bottom:14px}.mem-mode{padding:11px;border:2px solid var(--cb);border-radius:9px;background:rgba(255,255,255,.04);color:var(--text2);font-weight:900;text-align:left}.mem-mode small{display:block;font-size:.68rem;font-weight:600;margin-top:3px}.mem-mode.active{border-color:#90cdf4;background:rgba(66,153,225,.15);color:#fff}.mem-stats{display:flex;justify-content:space-between;gap:8px;font-size:.73rem;color:var(--text2);margin-bottom:5px}.mem-stats strong{color:#fff}.mem-track{height:7px;background:rgba(255,255,255,.1);border-radius:5px;overflow:hidden;margin-bottom:12px}.mem-track div{height:100%;width:0;background:#90cdf4;transition:width .3s}.mem-board{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}.mem-card{display:block;width:100%;height:82px;perspective:600px;cursor:pointer;border:0;background:transparent;padding:0;-webkit-tap-highlight-color:transparent}.mem-card-inner{display:block;position:relative;width:100%;height:100%;transition:transform .35s;transform-style:preserve-3d;-webkit-transform-style:preserve-3d}.mem-card.flipped .mem-card-inner,.mem-card.matched .mem-card-inner{transform:rotateY(180deg)}.mem-face{position:absolute;inset:0;border-radius:8px;display:flex;align-items:center;justify-content:center;text-align:center;backface-visibility:hidden;-webkit-backface-visibility:hidden;padding:5px}.mem-back{background:linear-gradient(135deg,#1a2b5b,#17224a);border:1px solid #90cdf4;color:#90cdf4;font-size:1.25rem}.mem-front{transform:rotateY(180deg);-webkit-transform:rotateY(180deg);color:#111827;border:2px solid #cbd5e1;font-size:.64rem;font-weight:800;line-height:1.1;overflow-wrap:anywhere}.mem-front.player{background:#fff8e8;border-color:#f5a623}.mem-front.country{background:#eaf7ef;border-color:#52b788}.mem-card.matched .mem-front{box-shadow:0 0 0 2px #52b788 inset;opacity:.82}.mem-country-content{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;gap:4px}.mem-country-name{display:block;width:100%;line-height:1.15;text-align:center}.mem-flag{display:block;width:34px;height:24px;object-fit:cover;border-radius:3px;margin:0 auto;box-shadow:0 1px 3px rgba(0,0,0,.3)}.mem-flag-fallback{display:flex;width:34px;height:24px;align-items:center;justify-content:center;border-radius:3px;margin:0 auto;background:#c8102e;color:#ffd700;font-size:1rem;font-weight:900;box-shadow:0 1px 3px rgba(0,0,0,.3)}.mem-ussr-flag{position:relative;display:block;width:34px;height:24px;border-radius:3px;margin:0 auto;background:#d52b1e;box-shadow:0 1px 3px rgba(0,0,0,.3);overflow:hidden}.mem-ussr-symbol{position:absolute;left:2px;top:5px;color:#ffd700;font-size:11px;font-family:Arial,sans-serif;font-weight:700;line-height:1}.mem-ussr-star{position:absolute;left:7px;top:1px;color:#ffd700;font-size:6px;line-height:1}.mem-result{padding:17px;border-radius:10px;border:1px solid rgba(144,205,244,.45);background:rgba(66,153,225,.09);text-align:center}.mem-result .big{font-size:2rem;font-weight:900;color:#90cdf4;margin:8px 0}.mem-ranking{margin-top:20px;padding-top:14px;border-top:1px solid var(--cb)}.mem-ranking-head{display:flex;justify-content:space-between;align-items:center}.mem-ranking-head h3{font-size:.95rem}.mem-ranking-head button{width:32px;height:32px;border-radius:7px;border:1px solid #90cdf4;background:transparent;color:#90cdf4}.mem-ranking>p{font-size:.7rem;color:var(--text2);margin:3px 0 8px}.mem-filter{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:9px}.mem-filter button{padding:5px 9px;border-radius:15px;border:1px solid var(--cb);background:transparent;color:var(--text2);font-size:.68rem}.mem-filter button.active{background:#90cdf4;color:#081029;border-color:#90cdf4;font-weight:800}.mem-rank-wrap{overflow-x:auto;border:1px solid var(--cb);border-radius:8px}.mem-rank-table{width:100%;min-width:520px;border-collapse:collapse;font-size:.71rem}.mem-rank-table th{background:#151b38;color:var(--text2);text-align:left;padding:7px 6px;white-space:nowrap}.mem-rank-table td{padding:7px 6px;border-top:1px solid rgba(255,255,255,.07);white-space:nowrap}.mem-rank-table .num{text-align:center}.mem-empty{text-align:center;padding:18px;color:var(--text2);font-size:.8rem}@media(max-width:380px){.mem-board{grid-template-columns:repeat(3,1fr)}}
+.game-rank-filter{display:flex;gap:5px;flex-wrap:wrap;margin:8px 0 10px}.game-rank-filter button{padding:5px 9px;border-radius:15px;border:1px solid var(--cb);background:transparent;color:var(--text2);font-size:.68rem;cursor:pointer}.game-rank-filter button.active{font-weight:800}.hg-ranking .game-rank-filter button.active{background:#52b788;color:#102b1d;border-color:#52b788}.wwm-ranking .game-rank-filter button.active{background:var(--gold);color:#181006;border-color:var(--gold)}.game-rank-section-title{font-size:.76rem;font-weight:800;margin:10px 0 5px}.hg-ranking .game-rank-section-title{color:#8ee0ad}.wwm-ranking .game-rank-section-title{color:var(--gold)}
+
+/* Einheitliche Spaltenbreiten fuer alle Game-Ranglisten */
+.hg-rank-table,.wwm-rank-table,.mem-rank-table{table-layout:fixed;width:100%}
+.hg-rank-table{min-width:620px}.hg-rank-table th:nth-child(1),.hg-rank-table td:nth-child(1){width:52px}.hg-rank-table th:nth-child(2),.hg-rank-table td:nth-child(2){width:190px}.hg-rank-table th:nth-child(3),.hg-rank-table td:nth-child(3){width:82px}.hg-rank-table th:nth-child(4),.hg-rank-table td:nth-child(4){width:110px}.hg-rank-table th:nth-child(5),.hg-rank-table td:nth-child(5){width:186px}
+.wwm-rank-table{min-width:700px}.wwm-rank-table th:nth-child(1),.wwm-rank-table td:nth-child(1){width:52px}.wwm-rank-table th:nth-child(2),.wwm-rank-table td:nth-child(2){width:190px}.wwm-rank-table th:nth-child(3),.wwm-rank-table td:nth-child(3){width:100px}.wwm-rank-table th:nth-child(4),.wwm-rank-table td:nth-child(4){width:82px}.wwm-rank-table th:nth-child(5),.wwm-rank-table td:nth-child(5){width:115px}.wwm-rank-table th:nth-child(6),.wwm-rank-table td:nth-child(6){width:161px}
+.mem-rank-table{min-width:620px}.mem-rank-table th:nth-child(1),.mem-rank-table td:nth-child(1){width:52px}.mem-rank-table th:nth-child(2),.mem-rank-table td:nth-child(2){width:190px}.mem-rank-table th:nth-child(3),.mem-rank-table td:nth-child(3){width:82px}.mem-rank-table th:nth-child(4),.mem-rank-table td:nth-child(4){width:100px}.mem-rank-table th:nth-child(5),.mem-rank-table td:nth-child(5){width:196px}
+.hg-rank-table th,.hg-rank-table td,.wwm-rank-table th,.wwm-rank-table td,.mem-rank-table th,.mem-rank-table td{box-sizing:border-box;overflow:hidden;text-overflow:ellipsis;vertical-align:middle}
+.hg-rank-table th,.wwm-rank-table th,.mem-rank-table th{height:48px}
+.hg-rank-table td,.wwm-rank-table td,.mem-rank-table td{height:50px}
+.hg-rank-wrap,.wwm-rank-wrap,.mem-rank-wrap{width:100%;scrollbar-gutter:stable}
+.game-rank-section-title{height:28px;display:flex;align-items:flex-end}
+
+/* Game-Ranglisten ohne horizontalen Scrollbalken */
+.hg-rank-wrap,.wwm-rank-wrap,.mem-rank-wrap{overflow-x:hidden;width:100%;scrollbar-gutter:auto}
+.hg-rank-table,.wwm-rank-table,.mem-rank-table{width:100%;min-width:0!important;table-layout:fixed}
+.hg-rank-table th,.hg-rank-table td,.wwm-rank-table th,.wwm-rank-table td,.mem-rank-table th,.mem-rank-table td{padding:7px 4px;white-space:normal;overflow-wrap:anywhere;word-break:normal;text-overflow:clip;line-height:1.2}
+.hg-rank-table th:nth-child(1),.hg-rank-table td:nth-child(1){width:8%}.hg-rank-table th:nth-child(2),.hg-rank-table td:nth-child(2){width:31%}.hg-rank-table th:nth-child(3),.hg-rank-table td:nth-child(3){width:14%}.hg-rank-table th:nth-child(4),.hg-rank-table td:nth-child(4){width:20%}.hg-rank-table th:nth-child(5),.hg-rank-table td:nth-child(5){width:27%}
+.wwm-rank-table th:nth-child(1),.wwm-rank-table td:nth-child(1){width:8%}.wwm-rank-table th:nth-child(2),.wwm-rank-table td:nth-child(2){width:27%}.wwm-rank-table th:nth-child(3),.wwm-rank-table td:nth-child(3){width:16%}.wwm-rank-table th:nth-child(4),.wwm-rank-table td:nth-child(4){width:12%}.wwm-rank-table th:nth-child(5),.wwm-rank-table td:nth-child(5){width:17%}.wwm-rank-table th:nth-child(6),.wwm-rank-table td:nth-child(6){width:20%}
+.mem-rank-table th:nth-child(1),.mem-rank-table td:nth-child(1){width:8%}.mem-rank-table th:nth-child(2),.mem-rank-table td:nth-child(2){width:33%}.mem-rank-table th:nth-child(3),.mem-rank-table td:nth-child(3){width:14%}.mem-rank-table th:nth-child(4),.mem-rank-table td:nth-child(4){width:17%}.mem-rank-table th:nth-child(5),.mem-rank-table td:nth-child(5){width:28%}
+@media(max-width:480px){
+  .hg-rank-table,.wwm-rank-table,.mem-rank-table{font-size:.64rem}
+  .hg-rank-table th,.hg-rank-table td,.wwm-rank-table th,.wwm-rank-table td,.mem-rank-table th,.mem-rank-table td{padding:6px 2px}
+  .hg-rank-table th:nth-child(2),.hg-rank-table td:nth-child(2),.wwm-rank-table th:nth-child(2),.wwm-rank-table td:nth-child(2),.mem-rank-table th:nth-child(2),.mem-rank-table td:nth-child(2){font-size:.66rem}
+  .hg-rank-table th:nth-child(5),.hg-rank-table td:nth-child(5),.wwm-rank-table th:nth-child(6),.wwm-rank-table td:nth-child(6),.mem-rank-table th:nth-child(5),.mem-rank-table td:nth-child(5){font-size:.58rem}
+}
 </style>
 
 <link rel="manifest" href="manifest.json">
@@ -267,7 +293,7 @@
       <div class="game-launch-card wwm-launch"><h3>🏆 Weg zum Weltmeister</h3><p>Rekonstruiere fünf frühere Weltmeisterschaften: Gastgeber, Sieger, Finalgegner und im schweren Modus zusätzlich Finalresultat und Torschützenkönig.</p><button class="btn btn-primary btn-full" onclick="openWorldChampionGame()">Spiel starten</button></div>
       <div class="game-launch-card mem-launch"><h3>🧠 WM-Spieler-Memory</h3><p>Ordne zehn WM-Spieler ihrer Nationalmannschaft zu. Die Schwierigkeit steigt mit dem Alter der Fussball-Legenden.</p><button class="btn btn-secondary btn-full" onclick="openMemoryGame()">Spiel starten</button></div>
     </div>
-    <div id="hangman-game"><div class="hg-top"><div class="hg-title">FUSSBALL LÄNDER-HANGMAN</div><button class="hg-close" onclick="closeHangmanGame()">← Games</button></div><div class="hg-difficulty"><button id="hg-easy" class="hg-diff active" onclick="setHangmanDifficulty('easy')">⚽ LEICHT</button><button id="hg-hard" class="hg-diff" onclick="setHangmanDifficulty('hard')">🔥 SCHWER</button></div><div class="hg-subtitle" id="hg-subtitle"></div><div class="hg-errors" id="hg-errors"></div><div class="hg-field" id="hg-field"><div class="hg-midline"></div><div class="hg-circle"></div><div class="hg-goal-l"></div><div class="hg-goal-r"></div><div id="hg-player">⚽🏃</div></div><div class="hg-word" id="hg-word"></div><div class="hg-keyboard" id="hg-keyboard"></div><div class="hg-stats"><div><div class="hg-stat-label"><span>⭐ Punkte (max. 10)</span><strong id="hg-points-val">0 / 10</strong></div><div class="hg-track"><div class="hg-fill" id="hg-points-fill"></div></div></div><div><div class="hg-stat-label"><span>🎯 Trefferquote</span><strong id="hg-rate-val">–</strong></div><div class="hg-track"><div class="hg-fill" id="hg-rate-fill"></div></div></div><div class="hg-total-errors"><span>❌ Fehlversuche total</span><strong id="hg-total-errors-val">0</strong></div></div><div class="hg-ranking"><div class="hg-ranking-head"><h3>🏆 Hangman-Rangliste</h3><button class="hg-refresh" onclick="loadHangmanRanking()">↻</button></div><p class="hg-ranking-note">Pro Spieler wird der beste leichte und der beste schwere Versuch angezeigt.</p><div id="hg-ranking-content"><div class="loading-text">Lade Rangliste...</div></div></div><div id="hg-modal"><div id="hg-modal-box"><h2 id="hg-modal-title"></h2><div id="hg-modal-sub"></div><button class="btn btn-green" id="hg-modal-btn" onclick="handleHangmanModal()">Neues Land</button></div></div></div>
+    <div id="hangman-game"><div class="hg-top"><div class="hg-title">FUSSBALL LÄNDER-HANGMAN</div><button class="hg-close" onclick="closeHangmanGame()">← Games</button></div><div class="hg-difficulty"><button id="hg-easy" class="hg-diff active" onclick="setHangmanDifficulty('easy')">⚽ LEICHT</button><button id="hg-hard" class="hg-diff" onclick="setHangmanDifficulty('hard')">🔥 SCHWER</button></div><div class="hg-subtitle" id="hg-subtitle"></div><div class="hg-errors" id="hg-errors"></div><div class="hg-field" id="hg-field"><div class="hg-midline"></div><div class="hg-circle"></div><div class="hg-goal-l"></div><div class="hg-goal-r"></div><div id="hg-player">⚽🏃</div></div><div class="hg-word" id="hg-word"></div><div class="hg-keyboard" id="hg-keyboard"></div><div class="hg-stats"><div><div class="hg-stat-label"><span>⭐ Punkte (max. 10)</span><strong id="hg-points-val">0 / 10</strong></div><div class="hg-track"><div class="hg-fill" id="hg-points-fill"></div></div></div><div><div class="hg-stat-label"><span>🎯 Trefferquote</span><strong id="hg-rate-val">–</strong></div><div class="hg-track"><div class="hg-fill" id="hg-rate-fill"></div></div></div><div class="hg-total-errors"><span>❌ Fehlversuche total</span><strong id="hg-total-errors-val">0</strong></div></div><div class="hg-ranking"><div class="hg-ranking-head"><h3>🏆 Hangman-Rangliste</h3><button class="hg-refresh" onclick="loadHangmanRanking()">↻</button></div><p class="hg-ranking-note">Pro Spieler wird der beste leichte und der beste schwere Versuch angezeigt.</p><div class="game-rank-filter" id="hg-rank-filter"><button class="active" onclick="setHangmanRankFilter('all',this)">Alle</button><button onclick="setHangmanRankFilter('easy',this)">Leicht</button><button onclick="setHangmanRankFilter('hard',this)">Schwer</button></div><div id="hg-ranking-content"><div class="loading-text">Lade Rangliste...</div></div></div><div id="hg-modal"><div id="hg-modal-box"><h2 id="hg-modal-title"></h2><div id="hg-modal-sub"></div><button class="btn btn-green" id="hg-modal-btn" onclick="handleHangmanModal()">Neues Land</button></div></div></div>
     <div id="worldchamp-game">
       <div class="wwm-top"><div><div class="wwm-title">🏆 WEG ZUM WELTMEISTER</div><div class="wwm-small">Je eine WM aus fünf Zeitepochen pro Durchgang</div></div><button class="wwm-close" onclick="closeWorldChampionGame()">← Games</button></div>
       <div id="wwm-start">
@@ -285,7 +311,7 @@
         <button id="wwm-next-btn" class="btn btn-green btn-full hidden" onclick="nextWorldChampionRound()">Nächste WM</button>
       </div>
       <div id="wwm-finish" class="hidden"></div>
-      <div class="wwm-ranking"><div class="wwm-ranking-head"><h3>🏆 Rangliste</h3><button onclick="loadWorldChampionRanking()">↻</button></div><p>Pro Spieler wird je Modus nur der beste Durchgang angezeigt.</p><div id="wwm-ranking-content"><div class="loading-text">Lade Rangliste...</div></div></div>
+      <div class="wwm-ranking"><div class="wwm-ranking-head"><h3>🏆 Rangliste</h3><button onclick="loadWorldChampionRanking()">↻</button></div><p>Pro Spieler wird je Modus nur der beste Durchgang angezeigt.</p><div class="game-rank-filter" id="wwm-rank-filter"><button class="active" onclick="setWorldChampionRankFilter('all',this)">Alle</button><button onclick="setWorldChampionRankFilter('easy',this)">Leicht</button><button onclick="setWorldChampionRankFilter('hard',this)">Schwer</button></div><div id="wwm-ranking-content"><div class="loading-text">Lade Rangliste...</div></div></div>
     </div>
     <div id="memory-game">
       <div class="mem-top"><div><div class="mem-title">🧠 WM-SPIELER-MEMORY</div><div class="mem-small">Spieler ↔ Nationalmannschaft · immer 10 Paare</div></div><button class="mem-close" onclick="closeMemoryGame()">← Games</button></div>
@@ -1500,6 +1526,12 @@ function buildRankMapByPoints(rows) {
 }
 
 
+function getCurrentFinalRank(uid) {
+  const rows=(window.APP.rankingCache||[]).map(u=>({uid:u.uid,pts:u.points||0}));
+  if(!rows.length)return null;
+  return buildRankMapByPoints(rows)[uid]||null;
+}
+
 window.recalcAllUserStats = async function () {
   console.log("🔄 Berechne alle User-Statistiken neu...");
 
@@ -1938,47 +1970,57 @@ document.getElementById('profile-modal').classList.add('open');
 
 // ✅ zuerst versuchen: Cache benutzen
 if (cachedRank && cachedRank.length) {
-
   const ctxRank = document.getElementById('chart-rank');
+  const finalRank = getCurrentFinalRank(uid);
+  const rankValues = [...cachedRank];
+  const rankLabels = cachedRank.map((_, i) => i + 1);
+  const pointColors = cachedRank.map(() => '#90cdf4');
+  const pointRadii = cachedRank.map(() => 3);
+
+  if(finalRank !== null){
+    rankValues.push(finalRank);
+    rankLabels.push('Schlussrang');
+    pointColors.push('#f5a623');
+    pointRadii.push(6);
+  }
 
   new Chart(ctxRank, {
     type: 'line',
     data: {
-      labels: cachedRank.map((_, i) => i + 1),
+      labels: rankLabels,
       datasets: [{
-        data: cachedRank,
+        data: rankValues,
         borderColor: '#90cdf4',
         backgroundColor: 'rgba(144,205,244,0.2)',
+        pointBackgroundColor: pointColors,
+        pointBorderColor: pointColors,
+        pointRadius: pointRadii,
+        pointHoverRadius: pointRadii.map(r => r + 2),
         tension: 0.3,
         fill: false
       }]
     },
     options: {
-      plugins: { legend: { display: false }},
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: {
+          title: items => items[0]?.label === 'Schlussrang' ? 'Schlussrang inkl. Bonusfragen' : `Nach Spiel ${items[0]?.label}`,
+          label: item => `Rang ${item.raw}`
+        }}
+      },
       scales: {
-  y: {
-    reverse: true,
-
-    min: 1,
-    max: window.APP.rankingCache.length, // 👈 Anzahl User
-
-    ticks: {
-      stepSize: 1,
-      precision: 0
-    },
-
-    title: {
-      display: true,
-      text: 'Rang'
-    }
-  }
-}
+        x: { ticks: { autoSkip: true, maxRotation: 0 } },
+        y: {
+          reverse: true,
+          min: 1,
+          max: Math.max(1, window.APP.rankingCache.length),
+          ticks: { stepSize: 1, precision: 0 },
+          title: { display: true, text: 'Rang' }
+        }
+      }
     }
   });
-
 } else {
-
-  // ❗ fallback nur wenn kein Cache existiert
   buildRankChart(uid, finished);
 }
 
@@ -2038,6 +2080,12 @@ if (!t) continue;
 
 
 
+  const finalRank = getCurrentFinalRank(uid);
+  if(finalRank !== null){
+    rankLabels.push('Schlussrang');
+    rankData.push(finalRank);
+  }
+
   // 👉 Chart zeichnen (erst jetzt!)
   new Chart(ctxRank, {
     type: 'line',
@@ -2047,6 +2095,9 @@ if (!t) continue;
         data: rankData,
         borderColor: '#90cdf4',
         backgroundColor: 'rgba(144,205,244,0.2)',
+        pointBackgroundColor: rankLabels.map(l => l==='Schlussrang' ? '#f5a623' : '#90cdf4'),
+        pointBorderColor: rankLabels.map(l => l==='Schlussrang' ? '#f5a623' : '#90cdf4'),
+        pointRadius: rankLabels.map(l => l==='Schlussrang' ? 6 : 3),
         tension: 0.3,
         fill: true
       }]
@@ -2710,36 +2761,30 @@ async function hgSaveBestScore(){
     return false;
   }
 }
+let hgRankFilter='all',hgRankingRows=[];
+window.setHangmanRankFilter=(mode,btn)=>{hgRankFilter=mode;document.querySelectorAll('#hg-rank-filter button').forEach(b=>b.classList.toggle('active',b===btn));renderHangmanRanking();};
 window.loadHangmanRanking=async()=>{
-  const el=document.getElementById('hg-ranking-content');
-  if(!el)return;
+  const el=document.getElementById('hg-ranking-content');if(!el)return;
   el.innerHTML='<div class="loading-text" style="padding:16px">Lade Rangliste...</div>';
   try{
     const snap=await getDocs(collection(db,'hangmanScores'));
-    const rows=[];
-    snap.forEach(d=>rows.push({id:d.id,...d.data()}));
-    rows.sort((a,b)=>{
-      const err=(a.errors??Number.MAX_SAFE_INTEGER)-(b.errors??Number.MAX_SAFE_INTEGER);
-      if(err!==0)return err;
-      const rate=(b.hitRate??0)-(a.hitRate??0);
-      if(rate!==0)return rate;
-      const ad=hgDateValue(a.completedAt)?.getTime()??Number.MAX_SAFE_INTEGER;
-      const bd=hgDateValue(b.completedAt)?.getTime()??Number.MAX_SAFE_INTEGER;
-      return ad-bd;
-    });
-    if(!rows.length){el.innerHTML='<div class="hg-ranking-empty">Noch keine abgeschlossenen Spiele.</div>';return;}
-    let html='<div class="hg-rank-wrap"><table class="hg-rank-table"><thead><tr><th class="num">#</th><th>Spieler</th><th>Modus</th><th class="num">Fehler</th><th class="num">Trefferquote</th><th>Geschafft am</th></tr></thead><tbody>';
-    rows.forEach((r,i)=>{
-      const mode=r.mode==='hard'?'Schwer':'Leicht';
-      html+=`<tr><td class="num">${i+1}.</td><td>${r.emoji||'⚽'} ${r.username||r.uid||'Unbekannt'}</td><td><span class="hg-mode ${r.mode==='hard'?'hard':'easy'}">${mode}</span></td><td class="num"><strong>${r.errors??0}</strong></td><td class="num">${r.hitRate??0}%</td><td>${hgFormatDate(r.completedAt)}</td></tr>`;
-    });
-    html+='</tbody></table></div>';
-    el.innerHTML=html;
-  }catch(e){
-    console.error('Hangman-Rangliste konnte nicht geladen werden:',e);
-    el.innerHTML=`<div class="hg-ranking-error">Rangliste nicht verfügbar: ${e.message}</div>`;
-  }
+    hgRankingRows=[];snap.forEach(d=>hgRankingRows.push({id:d.id,...d.data()}));
+    renderHangmanRanking();
+  }catch(e){console.error('Hangman-Rangliste konnte nicht geladen werden:',e);el.innerHTML=`<div class="hg-ranking-error">Rangliste nicht verfügbar: ${e.message}</div>`;}
 };
+function renderHangmanRanking(){
+  const el=document.getElementById('hg-ranking-content');if(!el)return;
+  const modes=hgRankFilter==='all'?['easy','hard']:[hgRankFilter];let html='';
+  for(const mode of modes){
+    const rows=hgRankingRows.filter(r=>r.mode===mode).sort((a,b)=>{const err=(a.errors??Number.MAX_SAFE_INTEGER)-(b.errors??Number.MAX_SAFE_INTEGER);if(err!==0)return err;const rate=(b.hitRate??0)-(a.hitRate??0);if(rate!==0)return rate;const ad=hgDateValue(a.completedAt)?.getTime()??Number.MAX_SAFE_INTEGER;const bd=hgDateValue(b.completedAt)?.getTime()??Number.MAX_SAFE_INTEGER;return ad-bd;});
+    if(hgRankFilter==='all')html+=`<div class="game-rank-section-title">${mode==='hard'?'Schwer':'Leicht'}</div>`;
+    if(!rows.length){html+='<div class="hg-ranking-empty">Noch keine abgeschlossenen Spiele.</div>';continue;}
+    html+='<div class="hg-rank-wrap"><table class="hg-rank-table"><thead><tr><th class="num">#</th><th>Spieler</th><th class="num">Fehler</th><th class="num">Trefferquote</th><th>Geschafft am</th></tr></thead><tbody>';
+    rows.forEach((r,i)=>{html+=`<tr><td class="num">${i+1}.</td><td>${r.emoji||'⚽'} ${r.username||r.uid||'Unbekannt'}</td><td class="num"><strong>${r.errors??0}</strong></td><td class="num">${r.hitRate??0}%</td><td>${hgFormatDate(r.completedAt)}</td></tr>`;});
+    html+='</tbody></table></div>';
+  }
+  el.innerHTML=html;
+}
 async function hgModal(won){hgTotal++;if(won){hgWins++;hgPoints+=hgDifficulty==='hard'?2:1;}hgStats();hgRenderWord(true);const t=document.getElementById('hg-modal-title'),u=document.getElementById('hg-modal-sub'),b=document.getElementById('hg-modal-btn');if(hgPoints>=HG_MAX){hgChampion=true;t.textContent='🏆 BRAVO!';t.style.color='#f8961e';u.textContent='Du kennst die WM-Länder ausgezeichnet. Dein Bestwert wird gespeichert.';b.textContent='Neu starten';const isBest=await hgSaveBestScore();u.textContent=isBest?'Neuer persönlicher Bestwert gespeichert!':'Spiel geschafft. Dein bisheriger Bestwert bleibt bestehen.';}else if(won){const p=hgDifficulty==='hard'?2:1;t.textContent='⚽ TOR FÜR DICH!';t.style.color='#52b788';u.textContent=`Richtig! +${p} ${p===1?'Punkt':'Punkte'}. Das Land war: ${hgCountry}`;b.textContent='Neues Land';}else{t.textContent='😢 TOR FÜR DEN GEGNER!';t.style.color='#f4a261';u.textContent=`Das gesuchte Land war: ${hgCountry}`;b.textContent='Neues Land';}document.getElementById('hg-modal').classList.add('show');}
 window.handleHangmanModal=()=>{if(hgChampion){hgTotal=0;hgWins=0;hgPoints=0;hgTotalErrors=0;hgUnlockDifficulty();hgStats();}hgStart();};window.addEventListener('resize',()=>{if(document.getElementById('hangman-game')?.classList.contains('open'))hgMove();});
 // Ende Länder-Hangman
@@ -2794,7 +2839,27 @@ window.resetWorldChampionGame=()=>{document.getElementById('wwm-finish').classLi
 function wwmFormatDuration(sec){const m=Math.floor(sec/60),s=sec%60;return `${m}:${String(s).padStart(2,'0')} Min.`;}
 function wwmDocId(uid,mode){return `${uid}_${mode}`;}
 async function wwmSaveBest(duration,max,rate){const u=window.APP.user;if(!u)return false;const ref=doc(db,'worldChampionScores',wwmDocId(u.uid,wwmMode));try{const snap=await getDoc(ref),old=snap.exists()?snap.data():null;const better=!old||wwmCorrect>(old.correct??-1)||(wwmCorrect===(old.correct??-1)&&wwmErrors<(old.errors??9999))||(wwmCorrect===(old.correct??-1)&&wwmErrors===(old.errors??9999)&&duration<(old.duration??999999));if(better)await setDoc(ref,{uid:u.uid,username:u.username,emoji:u.emoji||'⚽',mode:wwmMode,correct:wwmCorrect,maxCorrect:max,errors:wwmErrors,hitRate:rate,duration,completedAt:serverTimestamp()});await loadWorldChampionRanking();return better;}catch(e){console.error(e);document.getElementById('wwm-ranking-content').innerHTML=`<div class="hg-ranking-error">Rangliste nicht verfügbar: ${e.message}</div>`;return false;}}
-window.loadWorldChampionRanking=async()=>{const el=document.getElementById('wwm-ranking-content');if(!el)return;el.innerHTML='<div class="loading-text" style="padding:16px">Lade Rangliste...</div>';try{const snap=await getDocs(collection(db,'worldChampionScores')),rows=[];snap.forEach(d=>rows.push(d.data()));rows.sort((a,b)=>(b.correct??0)-(a.correct??0)||(a.errors??9999)-(b.errors??9999)||(a.duration??999999)-(b.duration??999999));if(!rows.length){el.innerHTML='<div class="wwm-empty">Noch keine abgeschlossenen Durchgänge.</div>';return;}let h='<div class="wwm-rank-wrap"><table class="wwm-rank-table"><thead><tr><th class="num">#</th><th>Spieler</th><th>Modus</th><th class="num">Richtig</th><th class="num">Fehler</th><th>Zeit</th><th>Datum</th></tr></thead><tbody>';rows.forEach((r,i)=>{h+=`<tr><td class="num">${i+1}.</td><td>${r.emoji||'⚽'} ${r.username||r.uid}</td><td><span class="hg-mode ${r.mode==='hard'?'hard':'easy'}">${r.mode==='hard'?'Schwer':'Leicht'}</span></td><td class="num"><strong>${r.correct??0}/${r.maxCorrect??(r.mode==='hard'?25:15)}</strong></td><td class="num">${r.errors??0}</td><td>${wwmFormatDuration(r.duration??0)}</td><td>${hgFormatDate(r.completedAt)}</td></tr>`;});el.innerHTML=h+'</tbody></table></div>';}catch(e){el.innerHTML=`<div class="hg-ranking-error">Rangliste nicht verfügbar: ${e.message}</div>`;}};
+let wwmRankFilter='all',wwmRankingRows=[];
+window.setWorldChampionRankFilter=(mode,btn)=>{wwmRankFilter=mode;document.querySelectorAll('#wwm-rank-filter button').forEach(b=>b.classList.toggle('active',b===btn));renderWorldChampionRanking();};
+window.loadWorldChampionRanking=async()=>{
+  const el=document.getElementById('wwm-ranking-content');if(!el)return;
+  el.innerHTML='<div class="loading-text" style="padding:16px">Lade Rangliste...</div>';
+  try{const snap=await getDocs(collection(db,'worldChampionScores'));wwmRankingRows=[];snap.forEach(d=>wwmRankingRows.push(d.data()));renderWorldChampionRanking();}
+  catch(e){el.innerHTML=`<div class="hg-ranking-error">Rangliste nicht verfügbar: ${e.message}</div>`;}
+};
+function renderWorldChampionRanking(){
+  const el=document.getElementById('wwm-ranking-content');if(!el)return;
+  const modes=wwmRankFilter==='all'?['easy','hard']:[wwmRankFilter];let html='';
+  for(const mode of modes){
+    const rows=wwmRankingRows.filter(r=>r.mode===mode).sort((a,b)=>(b.correct??0)-(a.correct??0)||(a.errors??9999)-(b.errors??9999)||(a.duration??999999)-(b.duration??999999));
+    if(wwmRankFilter==='all')html+=`<div class="game-rank-section-title">${mode==='hard'?'Schwer':'Leicht'}</div>`;
+    if(!rows.length){html+='<div class="wwm-empty">Noch keine abgeschlossenen Durchgänge.</div>';continue;}
+    html+='<div class="wwm-rank-wrap"><table class="wwm-rank-table"><thead><tr><th class="num">#</th><th>Spieler</th><th class="num">Richtig</th><th class="num">Fehler</th><th>Zeit</th><th>Datum</th></tr></thead><tbody>';
+    rows.forEach((r,i)=>{html+=`<tr><td class="num">${i+1}.</td><td>${r.emoji||'⚽'} ${r.username||r.uid}</td><td class="num"><strong>${r.correct??0}/${r.maxCorrect??(r.mode==='hard'?25:15)}</strong></td><td class="num">${r.errors??0}</td><td>${wwmFormatDuration(r.duration??0)}</td><td>${hgFormatDate(r.completedAt)}</td></tr>`;});
+    html+='</tbody></table></div>';
+  }
+  el.innerHTML=html;
+}
 // Ende Weg zum Weltmeister
 
 // Games: WM-Spieler-Memory
